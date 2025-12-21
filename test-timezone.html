@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Zona Horaria - México Centro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0c7bb3;
+        }
+        h2 {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .result {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 5px 0;
+        }
+        .success {
+            color: #047857;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        button {
+            background: #0c7bb3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0a679b;
+        }
+    </style>
+</head>
+<body>
+    <h1>🕐 Test de Zona Horaria - México Centro</h1>
+
+    <div class="test-card">
+        <h2>1. Verificación de Carga de Utilidades</h2>
+        <div id="test-load" class="result">Verificando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>2. Hora Actual en México</h2>
+        <div id="test-current" class="result">Calculando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>3. Formato de Fechas</h2>
+        <div id="test-format-date" class="result">Formateando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>4. Formato de Horas</h2>
+        <div id="test-format-time" class="result">Formateando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>5. Fechas Relativas</h2>
+        <div id="test-relative" class="result">Calculando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>6. Comparación con UTC</h2>
+        <div id="test-utc" class="result">Comparando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>7. Validaciones de Fecha</h2>
+        <div id="test-validations" class="result">Validando...</div>
+    </div>
+
+    <div class="test-card">
+        <h2>Tests Interactivos</h2>
+        <button onclick="testFormato()">Probar Formato Personalizado</button>
+        <button onclick="testRangos()">Probar Rangos de Fechas</button>
+        <button onclick="location.reload()">Reiniciar Tests</button>
+    </div>
+
+    <script src="js/timezone-utils.js"></script>
+    <script>
+        const TZ = window.TimezoneMexico;
+
+        function mostrarResultado(id, texto, esExito = true) {
+            const elemento = document.getElementById(id);
+            elemento.innerHTML = texto;
+            elemento.className = 'result ' + (esExito ? 'success' : 'error');
+        }
+
+        // Test 1: Verificar carga
+        function test1() {
+            if (typeof TZ !== 'undefined') {
+                mostrarResultado('test-load', '✅ Utilidades de zona horaria cargadas correctamente', true);
+            } else {
+                mostrarResultado('test-load', '❌ Error: No se pudieron cargar las utilidades', false);
+            }
+        }
+
+        // Test 2: Hora actual
+        function test2() {
+            try {
+                const ahora = TZ.obtenerFechaHoraMexico();
+                const texto = `
+                    ✅ Fecha/Hora México: ${ahora.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}<br>
+                    📅 Zona horaria: ${TZ.TIMEZONE}<br>
+                    🕐 Timestamp: ${ahora.toISOString()}
+                `;
+                mostrarResultado('test-current', texto, true);
+            } catch (e) {
+                mostrarResultado('test-current', '❌ Error: ' + e.message, false);
+            }
+        }
+
+        // Test 3: Formato de fechas
+        function test3() {
+            try {
+                const hoy = new Date();
+                const manana = new Date();
+                manana.setDate(manana.getDate() + 1);
+                
+                const texto = `
+                    ✅ Formato legible: ${TZ.formatearFechaLegible(hoy)}<br>
+                    ✅ Formato input: ${TZ.formatearFechaInput(hoy)}<br>
+                    ✅ Formato ISO: ${TZ.formatearISOMexico(hoy)}<br>
+                    ✅ Mañana: ${TZ.formatearFechaLegible(manana)}
+                `;
+                mostrarResultado('test-format-date', texto, true);
+            } catch (e) {
+                mostrarResultado('test-format-date', '❌ Error: ' + e.message, false);
+            }
+        }
+
+        // Test 4: Formato de horas
+        function test4() {
+            try {
+                const texto = `
+                    ✅ Hora actual: ${TZ.formatearHoraLegible(new Date())}<br>
+                    ✅ 14:30 → ${TZ.formatearHoraLegible('14:30')}<br>
+                    ✅ 09:15 → ${TZ.formatearHoraLegible('09:15')}<br>
+                    ✅ 23:45 → ${TZ.formatearHoraLegible('23:45')}<br>
+                    ✅ Input hora: ${TZ.formatearHoraInput(new Date())}
+                `;
+                mostrarResultado('test-format-time', texto, true);
+            } catch (e) {
+                mostrarResultado('test-format-time', '❌ Error: ' + e.message, false);
+            }
+        }
+
+        // Test 5: Fechas relativas
+        function test5() {
+            try {
+                const hoy = new Date();
+                const ayer = new Date();
+                ayer.setDate(ayer.getDate() - 1);
+                const manana = new Date();
+                manana.setDate(manana.getDate() + 1);
+                const en5dias = new Date();
+                en5dias.setDate(en5dias.getDate() + 5);
+                
+                const texto = `
+                    ✅ Ayer: ${TZ.textoFechaRelativa(TZ.formatearFechaInput(ayer))}<br>
+                    ✅ Hoy: ${TZ.textoFechaRelativa(TZ.formatearFechaInput(hoy))}<br>
+                    ✅ Mañana: ${TZ.textoFechaRelativa(TZ.formatearFechaInput(manana))}<br>
+                    ✅ En 5 días: ${TZ.textoFechaRelativa(TZ.formatearFechaInput(en5dias))}<br>
+                    ✅ Días desde hoy: ${TZ.diasDesdeHoy(TZ.formatearFechaInput(hoy))}
+                `;
+                mostrarResultado('test-relative', texto, true);
+            } catch (e) {
+                mostrarResultado('test-relative', '❌ Error: ' + e.message, false);
+            }
+        }
+
+        // Test 6: Comparación UTC
+        function test6() {
+            try {
+                const utcNow = new Date();
+                const mexicoNow = TZ.obtenerFechaHoraMexico();
+                
+                const texto = `
+                    🌍 Hora UTC: ${utcNow.toISOString()}<br>
+                    🇲🇽 Hora México: ${mexicoNow.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}<br>
+                    ⏰ Diferencia: ${(mexicoNow.getTimezoneOffset() / 60) * -1} horas
+                `;
+                mostrarResultado('test-utc', texto, true);
+            } catch (e) {
+                mostrarResultado('test-utc', '❌ Error: ' + e.message, false);
+            }
+        }
+
+        // Test 7: Validaciones
+        function test7() {
+            try {
+                const hoy = TZ.formatearFechaInput();
+                const ayer = TZ.formatearFechaInput(new Date(Date.now() - 86400000));
+                const manana = TZ.formatearFechaInput(new Date(Date.now() + 86400000));
+                
+                const texto = `
+                    ✅ ¿Es hoy hoy?: ${TZ.esFechaHoy(hoy) ? 'Sí' : 'No'}<br>
+                    ✅ ¿Es ayer pasado?: ${TZ.esFechaPasada(ayer) ? 'Sí' : 'No'}<br>
+                    ✅ ¿Es mañana pasado?: ${TZ.esFechaPasada(manana) ? 'Sí' : 'No'}<br>
+                    ✅ Fecha mínima input: ${TZ.fechaMinimaInput()}<br>
+                    ✅ Rango mes actual: ${TZ.rangoMesActual().inicio} a ${TZ.rangoMesActual().fin}
+                `;
+                mostrarResultado('test-validations', texto, true);
+            } catch (e) {
+                mostrarResultado('test-validations', '❌ Error: ' + e.message, false);
+            }
+        }
+
+        // Test interactivo
+        function testFormato() {
+            const fecha = prompt('Ingresa una fecha (YYYY-MM-DD):', '2025-12-25');
+            if (fecha) {
+                alert(`Formato legible: ${TZ.formatearFechaLegible(fecha)}\nDías desde hoy: ${TZ.diasDesdeHoy(fecha)}\nTexto relativo: ${TZ.textoFechaRelativa(fecha)}`);
+            }
+        }
+
+        function testRangos() {
+            const rango = TZ.rangoMesActual();
+            alert(`Mes actual:\nInicio: ${rango.inicio}\nFin: ${rango.fin}`);
+        }
+
+        // Ejecutar todos los tests
+        setTimeout(() => {
+            test1();
+            test2();
+            test3();
+            test4();
+            test5();
+            test6();
+            test7();
+        }, 100);
+    </script>
+</body>
+</html>

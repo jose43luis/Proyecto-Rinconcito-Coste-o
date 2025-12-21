@@ -1,0 +1,778 @@
+/* Estilos específicos para la página de Inventario */
+
+/* Header con stats */
+.header-stats {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.total-piezas {
+    text-align: right;
+}
+
+.total-piezas span {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+}
+
+.total-numero {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Subsecciones */
+.subsection {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.subsection:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.subsection-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+}
+
+/* Grid de items */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Item Card */
+.item-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.item-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(12, 123, 179, 0.1);
+    transform: translateY(-2px);
+}
+
+.item-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.item-icon {
+    width: 36px;
+    height: 36px;
+    background-color: var(--primary-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.item-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.item-nombre {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    flex: 1;
+}
+
+.item-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background-color: var(--light-bg);
+    color: var(--text-light);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.item-cantidad {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.item-cantidad-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.item-cantidad-numero {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.item-action {
+    width: 100%;
+}
+
+/* Item con colores */
+.item-colores-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: var(--light-bg);
+    border-radius: 8px;
+}
+
+.color-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.625rem;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.color-badge-nombre {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.color-badge-cantidad {
+    color: var(--text-light);
+}
+
+.total-display {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+    padding: 0.5rem;
+    background-color: var(--light-bg);
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+/* Modal específico para editar cantidad */
+.cantidad-actual-display {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.cantidad-actual-display span {
+    display: block;
+    color: white;
+    opacity: 0.9;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.cantidad-numero {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--light-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.action-btn:hover {
+    border-color: var(--primary-color);
+    background-color: #e0f2fe;
+}
+
+.action-btn.selected {
+    border-color: var(--primary-color);
+    background-color: #dbeafe;
+    color: var(--primary-color);
+}
+
+.action-btn svg {
+    color: var(--primary-color);
+}
+
+/* Form de cantidad */
+.form-cantidad {
+    margin-top: 1.5rem;
+}
+
+.oculto {
+    display: none;
+}
+
+.nueva-cantidad-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.nueva-cantidad-preview span:first-child {
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.preview-numero {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Modal de colores */
+.colores-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.color-item {
+    background-color: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.color-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.color-nombre {
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+}
+
+.color-cantidad {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    text-align: center;
+    margin: 0.75rem 0;
+}
+
+.btn-editar-color {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.875rem;
+}
+
+.btn-editar-color:hover {
+    border-color: var(--primary-color);
+    background-color: var(--light-bg);
+}
+
+/* Form nuevo color */
+.form-nuevo-color {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background-color: var(--light-bg);
+    border-radius: 8px;
+    border: 2px dashed var(--border-color);
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+/* Empty state */
+.empty-state-inventario {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state-inventario svg {
+    color: var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-inventario h3 {
+    font-size: 1.25rem;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-inventario p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .colores-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .header-stats {
+        width: 100%;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .header-stats .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .total-piezas {
+        text-align: center;
+        width: 100%;
+        padding: 1rem;
+        background-color: var(--light-bg);
+        border-radius: 8px;
+    }
+
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .cantidad-numero {
+        font-size: 2.5rem;
+    }
+
+    .item-cantidad-numero {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .search-input-wrapper {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .item-card {
+        padding: 1rem;
+    }
+
+    .item-cantidad-numero {
+        font-size: 1.75rem;
+    }
+
+    .total-numero {
+        font-size: 1.5rem;
+    }
+}
+
+/* Animaciones */
+.item-card {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estados especiales */
+.item-card.sin-stock {
+    border-color: var(--danger-color);
+    background-color: #fef2f2;
+}
+
+.item-card.sin-stock .item-cantidad-numero {
+    color: var(--danger-color);
+}
+
+.item-card.stock-bajo {
+    border-color: var(--warning-color);
+    background-color: #fffbeb;
+}
+
+.item-card.stock-bajo .item-cantidad-numero {
+    color: var(--warning-color);
+}
+
+/* Loading state */
+.loading-inventario {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loading-inventario svg {
+    animation: spin 1s linear infinite;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Highlight para búsqueda */
+.item-card.highlight {
+    border-color: var(--warning-color);
+    background-color: #fffbeb;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease;
+}
+
+.modal-large {
+    max-width: 800px;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.modal-close {
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-light);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--light-bg);
+    color: var(--text-dark);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-subtitle {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.modal-footer {
+    padding: 1rem 2rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.875rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(12, 123, 179, 0.1);
+}
+
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-prefix {
+    position: absolute;
+    left: 12px;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.input-group input {
+    padding-left: 2rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn-sm {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* Responsive - Optimizado para todos los dispositivos */
+
+@media (max-width: 1024px) {
+    .productos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .search-bar {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .search-input-wrapper {
+        width: 100%;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+
+    .productos-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .producto-card {
+        padding: 1.25rem;
+    }
+
+    .modal {
+        padding: 0.5rem;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        max-height: 95vh;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .modal-header {
+        padding: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 1.25rem;
+    }
+
+    .modal-footer {
+        padding: 1.25rem;
+        flex-direction: column-reverse;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .producto-info {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .producto-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-header .btn {
+        width: 100%;
+    }
+
+    .producto-card {
+        padding: 1rem;
+    }
+
+    .producto-nombre {
+        font-size: 1rem;
+    }
+
+    .producto-precio {
+        font-size: 1.25rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+
+    .modal-header h3 {
+        font-size: 1.125rem;
+    }
+
+    .stock-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

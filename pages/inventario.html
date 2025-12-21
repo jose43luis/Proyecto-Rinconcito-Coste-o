@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - El Rinconcito Costeño</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/inventario.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="../index.html" class="navbar-brand">
+                <div class="logo">RC</div>
+                <span>El Rinconcito Costeño</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Inicio
+                </a></li>
+                <li><a href="pedidos.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Pedidos
+                </a></li>
+                <li><a href="salon.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Salón
+                </a></li>
+                <li><a href="inventario.html" class="active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    Inventario
+                </a></li>
+                <li><a href="disponibilidad.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Disponibilidad
+                </a></li>
+                <li><a href="estadisticas.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Estadísticas
+                </a></li>
+                <li><a href="configuracion.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Configuración
+                </a></li>
+                <li><a href="#" onclick="logout()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Salir
+                </a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1>Gestión de Inventario</h1>
+                <p>Administra el stock de mobiliario</p>
+            </div>
+            <div class="header-stats">
+                <button class="btn btn-primary" onclick="mostrarModalNuevoProducto()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nuevo Producto
+                </button>
+                <div class="total-piezas">
+                    <span>Total de piezas</span>
+                    <div class="total-numero" id="total-piezas">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Inventario General -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <h3 class="section-title">Inventario General</h3>
+                    <p class="section-subtitle">Visualiza y edita las cantidades de cada ítem</p>
+                </div>
+                <div class="search-input-wrapper">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" id="buscar-item" placeholder="Buscar ítem..." onkeyup="buscarProductos()">
+                </div>
+            </div>
+
+            <!-- Items por Color -->
+            <div class="subsection">
+                <h4 class="subsection-title">Ítems por Color</h4>
+                <div class="items-grid" id="items-colores">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Items por Tamaño -->
+            <div class="subsection">
+                <h4 class="subsection-title">Ítems por Tamaño</h4>
+                <div class="items-grid" id="items-tamanos">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Mobiliario General -->
+            <div class="subsection">
+                <h4 class="subsection-title">Mobiliario General</h4>
+                <div class="items-grid" id="items-mobiliario">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Cantidad -->
+    <div id="modal-editar-cantidad" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titulo-producto">Editar Cantidad</h3>
+                <button class="modal-close" onclick="cerrarModalEditar()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="cantidad-actual-display">
+                    <span>Cantidad Actual</span>
+                    <div class="cantidad-numero" id="cantidad-actual-display">0</div>
+                </div>
+
+                <div class="form-group">
+                    <label>¿Qué deseas hacer?</label>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="seleccionarAccion('agregar')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Agregar</span>
+                        </button>
+                        <button class="action-btn" onclick="seleccionarAccion('quitar')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                            </svg>
+                            <span>Quitar</span>
+                        </button>
+                        <button class="action-btn" onclick="seleccionarAccion('establecer')">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            <span>Establecer</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="form-cantidad" class="form-cantidad oculto">
+                    <div class="form-group">
+                        <label for="input-cantidad" id="label-cantidad">Cantidad</label>
+                        <input type="number" id="input-cantidad" min="0" placeholder="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="motivo-cambio">Motivo del cambio (opcional)</label>
+                        <textarea id="motivo-cambio" rows="2" placeholder="Ej: Compra de nuevo inventario, pérdida, daño..."></textarea>
+                    </div>
+
+                    <div class="nueva-cantidad-preview">
+                        <span>Nueva cantidad será:</span>
+                        <span class="preview-numero" id="preview-cantidad">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+                <button class="btn btn-primary" id="btn-guardar-cantidad" onclick="guardarCambioInventario()" disabled>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Colores -->
+    <div id="modal-editar-colores" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modal-titulo-colores">Gestionar Colores</h3>
+                <button class="modal-close" onclick="cerrarModalColores()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitle">Gestiona las cantidades por color</p>
+                
+                <div class="colores-grid" id="colores-grid">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+
+                <button class="btn btn-secondary btn-block" onclick="mostrarAgregarColor()" style="margin-top: 1rem;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Agregar Nuevo Color
+                </button>
+
+                <div id="form-nuevo-color" class="form-nuevo-color oculto">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre del Color</label>
+                            <input type="text" id="nuevo-color-nombre" placeholder="Ej: Verde">
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad Inicial</label>
+                            <input type="number" id="nuevo-color-cantidad" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="cancelarNuevoColor()">Cancelar</button>
+                        <button class="btn btn-primary btn-sm" onclick="agregarNuevoColor()">Agregar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="cerrarModalColores()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Producto -->
+    <div id="modal-nuevo-producto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar Nuevo Producto</h3>
+                <button class="modal-close" onclick="cerrarModalNuevoProducto()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitle">Registra un nuevo tipo de mobiliario en el inventario</p>
+                
+                <div class="form-group">
+                    <label for="nuevo-producto-nombre">Nombre del Producto *</label>
+                    <input type="text" id="nuevo-producto-nombre" placeholder="Ej: Brincolín, Silla Tiffany, etc." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nuevo-producto-categoria">Tipo/Categoría</label>
+                    <input type="text" id="nuevo-producto-categoria" placeholder="Ej: entretenimiento, mobiliario, etc.">
+                </div>
+
+                <div class="form-group">
+                    <label for="nuevo-producto-cantidad">Cantidad Inicial *</label>
+                    <input type="number" id="nuevo-producto-cantidad" min="0" placeholder="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nuevo-producto-precio">Precio de Renta (opcional)</label>
+                    <div class="input-group">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="nuevo-producto-precio" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="nuevo-producto-colores">
+                        <span>Este producto tiene colores</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="nuevo-producto-tamanos">
+                        <span>Este producto tiene tamaños</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalNuevoProducto()">Cancelar</button>
+                <button class="btn btn-primary" onclick="agregarNuevoProducto()">Agregar Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/inventario.js"></script>
+</body>
+</html>

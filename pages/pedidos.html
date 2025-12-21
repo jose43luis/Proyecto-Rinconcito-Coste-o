@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - El Rinconcito Costeño</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/pedidos.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="../index.html" class="navbar-brand">
+                <div class="logo">RC</div>
+                <span>El Rinconcito Costeño</span>
+            </a>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Inicio
+                </a></li>
+                <li><a href="pedidos.html" class="active">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Pedidos
+                </a></li>
+                <li><a href="salon.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Salón
+                </a></li>
+                <li><a href="inventario.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    Inventario
+                </a></li>
+                <li><a href="disponibilidad.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Disponibilidad
+                </a></li>
+                <li><a href="estadisticas.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Estadísticas
+                </a></li>
+                <li><a href="configuracion.html">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Configuración
+                </a></li>
+                <li><a href="#" onclick="logout()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Salir
+                </a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="container">
+        <!-- Vista de Lista de Pedidos -->
+        <div id="vista-lista" class="vista-activa">
+            <div class="page-header">
+                <div>
+                    <h1>Pedidos de Mobiliario</h1>
+                    <p>Gestiona todos los pedidos de renta de mobiliario</p>
+                </div>
+                <button class="btn btn-primary" onclick="mostrarFormularioNuevo()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Nuevo Pedido
+                </button>
+            </div>
+
+            <!-- Tabs de filtros -->
+            <div class="tabs">
+                <button class="tab-btn active" data-filter="todos" onclick="filtrarPedidos('todos')">Todos</button>
+                <button class="tab-btn" data-filter="proximo" onclick="filtrarPedidos('proximo')">Próximos</button>
+                <button class="tab-btn" data-filter="entregado" onclick="filtrarPedidos('entregado')">Entregados</button>
+                <button class="tab-btn" data-filter="recogido" onclick="filtrarPedidos('recogido')">Recogidos</button>
+            </div>
+
+            <!-- Lista de Pedidos -->
+            <div id="contenedor-pedidos">
+                <!-- Los pedidos se cargarán dinámicamente aquí -->
+            </div>
+        </div>
+
+        <!-- Vista de Formulario Nuevo Pedido -->
+        <div id="vista-formulario" class="vista-oculta">
+            <div class="page-header">
+                <div>
+                    <h1>Nuevo Pedido de Mobiliario</h1>
+                    <p>Registra un nuevo pedido de renta de mobiliario</p>
+                </div>
+                <button class="btn btn-secondary" onclick="cancelarNuevoPedido()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Volver
+                </button>
+            </div>
+
+            <div class="formulario-container">
+                <form id="form-nuevo-pedido" onsubmit="guardarPedido(event)">
+                    <div class="formulario-grid">
+                        <!-- Columna Izquierda: Información del Cliente -->
+                        <div class="form-section">
+                            <div class="section-card">
+                                <h3 class="section-card-title">Información del Cliente</h3>
+                                <p class="section-card-subtitle">Datos del cliente y evento</p>
+
+                                <div class="form-group">
+                                    <label for="nombre-cliente">Nombre del Cliente</label>
+                                    <input type="text" id="nombre-cliente" name="nombre_cliente" 
+                                           placeholder="Nombre completo del cliente" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="telefono-cliente">Teléfono</label>
+                                    <input type="tel" id="telefono-cliente" name="telefono_cliente" 
+                                           placeholder="Número de contacto">
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="fecha-evento">Fecha del Evento</label>
+                                        <input type="date" id="fecha-evento" name="fecha_evento" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="hora-evento">Hora del Evento</label>
+                                        <input type="time" id="hora-evento" name="hora_evento" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="lugar-predefinido">Lugar Predefinido</label>
+                                    <select id="lugar-predefinido" name="lugar_predefinido">
+                                        <option value="">Selecciona un lugar</option>
+                                        <!-- Se llenarán dinámicamente desde Supabase -->
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="direccion-completa">Dirección Completa</label>
+                                    <textarea id="direccion-completa" name="direccion_completa" rows="3" 
+                                              placeholder="Describe la ubicación exacta del evento..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="comentarios">Comentarios Adicionales</label>
+                                    <textarea id="comentarios" name="comentarios" rows="3" 
+                                              placeholder="Cualquier información adicional sobre el pedido..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Items del Pedido -->
+                            <div class="section-card">
+                                <div class="section-header">
+                                    <div>
+                                        <h3 class="section-card-title">Items del Pedido</h3>
+                                        <p class="section-card-subtitle">Selecciona el mobiliario a rentar</p>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalAgregarItem()">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        Agregar Item
+                                    </button>
+                                </div>
+
+                                <div id="lista-items-pedido">
+                                    <div class="empty-state">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                        </svg>
+                                        <p>No hay items agregados. Haz clic en "Agregar Item" para comenzar.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Resumen del Pedido -->
+                        <div class="form-section">
+                            <div class="section-card resumen-sticky">
+                                <h3 class="section-card-title">Resumen del Pedido</h3>
+
+                                <div class="resumen-detalle">
+                                    <div class="resumen-row">
+                                        <span>Ítems:</span>
+                                        <span id="resumen-items">0</span>
+                                    </div>
+                                    <div class="resumen-row">
+                                        <span>Piezas totales:</span>
+                                        <span id="resumen-piezas">0</span>
+                                    </div>
+                                </div>
+
+                                <div class="resumen-total">
+                                    <span>Total:</span>
+                                    <span id="resumen-total">$0.00</span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="esta-pagado" name="esta_pagado" onchange="toggleAnticipo()">
+                                        <span>¿Está pagado?</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-group" id="grupo-anticipo">
+                                    <label for="anticipo">Anticipo</label>
+                                    <div class="input-group">
+                                        <span class="input-prefix">$</span>
+                                        <input type="number" id="anticipo" name="anticipo" 
+                                               placeholder="0.00" step="0.01" min="0">
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-primary btn-block" onclick="generarYDescargarNota()">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                    Generar y Descargar Nota
+                                </button>
+
+                                <button type="submit" class="btn btn-secondary btn-block">
+                                    Guardar Pedido
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Item -->
+    <div id="modal-agregar-item" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar Producto al Pedido</h3>
+                <button class="modal-close" onclick="cerrarModalAgregarItem()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="producto-select">Producto</label>
+                    <select id="producto-select" onchange="cargarDetallesProducto()">
+                        <option value="">Selecciona un producto</option>
+                        <!-- Se llenarán dinámicamente desde Supabase -->
+                    </select>
+                </div>
+
+                <div id="detalles-producto" class="detalles-ocultos">
+                    <div class="form-group">
+                        <label for="cantidad-producto">Cantidad</label>
+                        <input type="number" id="cantidad-producto" min="1" value="1" onchange="calcularSubtotal()">
+                    </div>
+
+                    <div id="selector-color" class="form-group selector-oculto">
+                        <label>Color</label>
+                        <select id="color-select">
+                            <option value="">Selecciona un color</option>
+                        </select>
+                    </div>
+
+                    <div id="selector-tamano" class="form-group selector-oculto">
+                        <label>Tamaño</label>
+                        <select id="tamano-select" onchange="calcularSubtotal()">
+                            <option value="">Selecciona un tamaño</option>
+                        </select>
+                    </div>
+
+                    <div class="precio-info">
+                        <div class="precio-row">
+                            <span>Precio unitario:</span>
+                            <span id="precio-unitario">$0.00</span>
+                        </div>
+                        <div class="precio-row total">
+                            <span>Subtotal:</span>
+                            <span id="subtotal-item">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalAgregarItem()">Cancelar</button>
+                <button class="btn btn-primary" onclick="agregarItemAlPedido()">Agregar al Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Detalles del Pedido -->
+    <div id="modal-detalles-pedido" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Detalles del Pedido</h3>
+                <button class="modal-close" onclick="cerrarModalDetalles()">&times;</button>
+            </div>
+            <div class="modal-body" id="contenido-detalles-pedido">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="cerrarModalDetalles()">Cerrar</button>
+                <button class="btn btn-primary" onclick="descargarNotaPedido()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Descargar Nota
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+    <script src="../js/timezone-utils.js"></script>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/juegos-helper.js"></script>
+    <script src="../js/pedidos.js"></script>
+    <!-- jsPDF para generar PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
