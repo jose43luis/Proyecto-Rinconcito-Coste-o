@@ -1,10 +1,12 @@
-/* Estilos para la página de Configuración */
+/* ============================================
+   ESTILOS PARA CONFIGURACIÓN DE PRECIOS
+   ============================================ */
 
 .precios-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
     gap: 1.5rem;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
 }
 
 .precio-item {
@@ -14,122 +16,37 @@
 }
 
 .precio-item label {
-    font-size: 0.95rem;
     font-weight: 600;
     color: var(--text-dark);
+    font-size: 0.9rem;
 }
 
-.precio-item .input-group {
-    display: flex;
-    align-items: center;
+.precio-input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    overflow: hidden;
+    font-size: 0.95rem;
     transition: all 0.2s;
+    font-family: inherit;
 }
 
-.precio-item .input-group:focus-within {
+.precio-input:focus {
+    outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(12, 123, 179, 0.1);
 }
 
-.precio-item .input-prefix {
-    background-color: var(--light-bg);
-    padding: 0.75rem 1rem;
+.input-prefix {
+    position: absolute;
+    left: 12px;
     color: var(--text-light);
     font-weight: 600;
-    border-right: 1px solid var(--border-color);
+    pointer-events: none;
+    z-index: 1;
 }
 
-.precio-item input[type="number"] {
-    flex: 1;
-    border: none;
-    padding: 0.75rem 1rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-.precio-item input[type="number"]:focus {
-    outline: none;
-}
-
-/* Chrome, Safari, Edge, Opera */
-.precio-item input[type="number"]::-webkit-outer-spin-button,
-.precio-item input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Firefox */
-.precio-item input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-    .precios-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .page-header .btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .precios-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .precio-item .input-prefix {
-        padding: 0.65rem 0.875rem;
-    }
-
-    .precio-item input[type="number"] {
-        padding: 0.65rem 0.875rem;
-        font-size: 0.9rem;
-    }
-}
-
-/* Animaciones */
-.precio-item {
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Estados */
-.precio-item.guardado .input-group {
-    border-color: var(--success-color);
-    background-color: #f0fdf4;
-}
-
-.precio-item.error .input-group {
-    border-color: var(--danger-color);
-    background-color: #fef2f2;
-}
-
-/* Loading state */
+/* Overlay de guardando */
 .saving-overlay {
     position: fixed;
     top: 0;
@@ -147,16 +64,70 @@
     background: white;
     padding: 2rem;
     border-radius: 12px;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .saving-content svg {
     animation: spin 1s linear infinite;
     color: var(--primary-color);
-    margin-bottom: 1rem;
 }
 
 .saving-content p {
-    color: var(--text-dark);
     font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .precios-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .precios-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    .precios-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }

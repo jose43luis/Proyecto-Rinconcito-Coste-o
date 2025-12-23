@@ -1178,8 +1178,8 @@ function generarNotaPDF(pedido) {
     doc.text('Renta de Mobiliario para Eventos', margin, 27);
 
     // Contacto en header - LÍNEA 1
-    doc.setFontSize(9);
-    doc.text('Tel: 9541242921 / 9541251757', margin, 35);
+    doc.setFontSize(8);
+    doc.text('Tel: 954-124-2921 | 954-125-1757', margin, 35);
     
     // Dirección en header - LÍNEA 2
     doc.setFontSize(8);
