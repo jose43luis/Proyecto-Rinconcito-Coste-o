@@ -1,0 +1,22 @@
+{
+    "liveServer.settings.root": "/",
+    "liveServer.settings.file": "index.html",
+    "liveServer.settings.CustomBrowser": "chrome",
+    "liveServer.settings.AdvanceCustomBrowserCmdLine": "",
+    "liveServer.settings.NoBrowser": false,
+    "liveServer.settings.ignoreFiles": [
+        ".vscode/**",
+        "**/*.scss",
+        "**/*.sass",
+        "**/*.ts"
+    ],
+    "liveServer.settings.proxy": {
+        "enable": false
+    },
+    "liveServer.settings.mount": [],
+    "liveServer.settings.donotVerifyTags": false,
+    "liveServer.settings.donotShowInfoMsg": false,
+    "liveServer.settings.https": {
+        "enable": false
+    }
+}

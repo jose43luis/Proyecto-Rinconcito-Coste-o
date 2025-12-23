@@ -140,12 +140,19 @@
 
                             <div class="form-group">
                                 <label for="cliente-nombre-evento">Nombre del Cliente *</label>
-                                <input type="text" id="cliente-nombre-evento" placeholder="Nombre completo del cliente" required>
+                                <input type="text" id="cliente-nombre-evento" placeholder="Nombre completo del cliente" required 
+                                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                                       title="Solo letras y espacios"
+                                       oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, ''); actualizarResumenEvento()">
                             </div>
 
                             <div class="form-group">
                                 <label for="cliente-telefono-evento">Teléfono</label>
-                                <input type="tel" id="cliente-telefono-evento" placeholder="Número de contacto">
+                                <input type="tel" id="cliente-telefono-evento" placeholder="10 dígitos" 
+                                       pattern="[0-9]{10}"
+                                       maxlength="10"
+                                       title="Exactamente 10 dígitos"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                             </div>
 
                             <div class="form-group">
@@ -153,16 +160,27 @@
                                 <input type="date" id="fecha-evento" required onchange="actualizarResumenEvento()">
                             </div>
 
-                            <div class="form-row-2">
-                                <div class="form-group">
-                                    <label for="hora-inicio">Hora de Inicio *</label>
-                                    <input type="time" id="hora-inicio" required onchange="actualizarResumenEvento()">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="hora-fin">Hora de Fin</label>
-                                    <input type="time" id="hora-fin" onchange="actualizarResumenEvento()">
-                                </div>
+                            <div class="form-group">
+                                <label for="hora-inicio">Hora del Evento *</label>
+                                <select id="hora-inicio" required onchange="actualizarResumenEvento()">
+                                    <option value="">Selecciona una hora</option>
+                                    <option value="08:00 AM">8:00 AM</option>
+                                    <option value="09:00 AM">9:00 AM</option>
+                                    <option value="10:00 AM">10:00 AM</option>
+                                    <option value="11:00 AM">11:00 AM</option>
+                                    <option value="12:00 PM">12:00 PM</option>
+                                    <option value="01:00 PM">1:00 PM</option>
+                                    <option value="02:00 PM">2:00 PM</option>
+                                    <option value="03:00 PM">3:00 PM</option>
+                                    <option value="04:00 PM">4:00 PM</option>
+                                    <option value="05:00 PM">5:00 PM</option>
+                                    <option value="06:00 PM">6:00 PM</option>
+                                    <option value="07:00 PM">7:00 PM</option>
+                                    <option value="08:00 PM">8:00 PM</option>
+                                    <option value="09:00 PM">9:00 PM</option>
+                                    <option value="10:00 PM">10:00 PM</option>
+                                    <option value="11:00 PM">11:00 PM</option>
+                                </select>
                             </div>
 
                             <div class="form-group">

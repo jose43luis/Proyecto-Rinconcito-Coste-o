@@ -151,14 +151,6 @@
     color: var(--primary-color);
 }
 
-.pedido-actions {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-}
-
 /* Formulario */
 .formulario-container {
     margin-top: 2rem;
@@ -1238,5 +1230,60 @@
     .pago-status {
         padding: 0.75rem;
         font-size: 0.875rem;
+    }
+}
+
+/* Botón solo icono para Eliminar */
+.btn-icon-delete {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.btn-icon-delete:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-icon-delete svg {
+    flex-shrink: 0;
+}
+
+/* Ajuste para acciones de pedido */
+.pedido-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    align-items: center;
+}
+
+/* Ajuste para acciones de pedido en móvil */
+@media (max-width: 768px) {
+    .pedido-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .pedido-actions .btn-sm {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .btn-icon-delete {
+        width: 36px;
+        height: 36px;
     }
 }

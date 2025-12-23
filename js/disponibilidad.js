@@ -242,20 +242,58 @@ async function calcularDisponibilidad(fecha) {
         console.log('📅 Calculando disponibilidad para:', fecha);
         console.log(`📦 Productos a calcular: ${productos.length}`);
 
-        // Usar la función helper para calcular disponibilidad con juegos
-        const disponibilidad = await calcularDisponibilidadConJuegos(fecha, productos);
+        // Obtener pedidos del día
+        const { data: pedidosDia, error: pedidosError } = await supabase
+            .from('pedidos')
+            .select(`
+                *,
+                pedido_items!pedido_items_pedido_id_fkey (
+                    id,
+                    pedido_id,
+                    producto_id,
+                    cantidad,
+                    precio_unitario,
+                    subtotal,
+                    es_juego,
+                    es_componente_juego,
+                    juego_padre_id,
+                    productos!pedido_items_producto_id_fkey (nombre)
+                )
+            `)
+            .eq('fecha_evento', fecha);
+
+        if (pedidosError) throw pedidosError;
+
+        // Calcular disponibilidad
+        const disponibilidad = productos.map(producto => {
+            let cantidadUsada = 0;
+
+            // Contar cuántos de este producto están en uso
+            if (pedidosDia && pedidosDia.length > 0) {
+                pedidosDia.forEach(pedido => {
+                    if (pedido.pedido_items) {
+                        pedido.pedido_items.forEach(item => {
+                            if (item.producto_id === producto.id) {
+                                cantidadUsada += item.cantidad || 0;
+                            }
+                        });
+                    }
+                });
+            }
+
+            const stockTotal = producto.stock_total || producto.stock_disponible || 0;
+            const disponible = Math.max(0, stockTotal - cantidadUsada);
+
+            return {
+                nombre: producto.nombre,
+                disponible: disponible,
+                total: stockTotal,
+                enUso: cantidadUsada
+            };
+        });
 
         console.log('✅ Disponibilidad calculada:', disponibilidad.length);
-
-        // Formatear para mostrar
-        const disponibilidadFormateada = disponibilidad.map(prod => ({
-            nombre: prod.nombre,
-            disponible: prod.disponible,
-            total: prod.stock_total || prod.stock_disponible || 0,
-            enUso: prod.en_uso
-        }));
-
-        mostrarDisponibilidad(disponibilidadFormateada);
+        mostrarDisponibilidad(disponibilidad);
 
     } catch (error) {
         console.error('Error al calcular disponibilidad:', error);

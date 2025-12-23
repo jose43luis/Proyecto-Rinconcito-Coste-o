@@ -246,9 +246,20 @@ async function cargarPedidos() {
             .from('pedidos')
             .select(`
                 *,
-                pedido_items (
-                    *,
-                    productos (nombre)
+                pedido_items!pedido_items_pedido_id_fkey (
+                    id,
+                    pedido_id,
+                    producto_id,
+                    cantidad,
+                    precio_unitario,
+                    subtotal,
+                    es_juego,
+                    es_componente_juego,
+                    juego_padre_id,
+                    color_cubremantel,
+                    color,
+                    tamano,
+                    productos!pedido_items_producto_id_fkey (nombre)
                 )
             `)
             .order('fecha_evento', { ascending: true });
@@ -553,6 +564,33 @@ function cerrarModalAgregarItem() {
     modal.classList.remove('active');
 }
 
+// Obtener descripción de un juego
+async function obtenerDescripcionJuego(juegoId) {
+    try {
+        const { data: componentes, error } = await supabase
+            .from('juego_componentes')
+            .select(`
+                cantidad,
+                productos (nombre)
+            `)
+            .eq('juego_id', juegoId);
+
+        if (error || !componentes || componentes.length === 0) {
+            return ''; // Retornar vacío en lugar de mensaje de error
+        }
+
+        // Formatear descripción
+        const descripcion = componentes.map(comp => 
+            `${comp.cantidad} ${comp.productos.nombre}`
+        ).join(' + ');
+
+        return descripcion;
+    } catch (error) {
+        console.error('Error al obtener descripción del juego:', error);
+        return ''; // Retornar vacío en lugar de mensaje de error
+    }
+}
+
 // Cargar detalles del producto seleccionado
 async function cargarDetallesProducto() {
     const select = document.getElementById('producto-select');
@@ -572,32 +610,127 @@ async function cargarDetallesProducto() {
 
     // Resetear cantidad
     document.getElementById('cantidad-producto').value = 1;
+    
+    // Hacer precio editable y llenarlo con el precio por defecto
+    const precioInput = document.getElementById('precio-personalizado');
+    if (precioInput) {
+        precioInput.value = productoData.precio_renta;
+    }
 
-    // Si es un juego, mostrar descripción
+    // Si es un juego, mostrar selectores según el tipo
     if (productoData.es_juego) {
-        // Ocultar selectores
-        document.getElementById('selector-color').classList.add('selector-oculto');
-        document.getElementById('selector-tamano').classList.add('selector-oculto');
-        
-        // Mostrar descripción del juego
-        const descripcion = await obtenerDescripcionJuego(productoData.id);
-        
-        // Agregar descripción si no existe
+        // Ocultar descripción del juego completamente
         let descripcionDiv = document.getElementById('descripcion-juego');
-        if (!descripcionDiv) {
-            descripcionDiv = document.createElement('div');
-            descripcionDiv.id = 'descripcion-juego';
-            descripcionDiv.className = 'descripcion-juego';
-            detalles.insertBefore(descripcionDiv, document.getElementById('precio-info'));
+        if (descripcionDiv) {
+            descripcionDiv.style.display = 'none';
         }
         
-        descripcionDiv.innerHTML = `
-            <div class="juego-info">
-                <h4>🎁 Este paquete incluye:</h4>
-                <p>${descripcion}</p>
-            </div>
-        `;
-        descripcionDiv.style.display = 'block';
+        const selectorColor = document.getElementById('selector-color');
+        const selectorTamano = document.getElementById('selector-tamano');
+        
+        // Ocultar selector de tamaño para todos los juegos
+        selectorTamano.classList.add('selector-oculto');
+        selectorTamano.classList.remove('selector-visible');
+        
+        // Determinar qué selectores mostrar según el nombre del juego
+        const nombreJuego = productoData.nombre.toLowerCase();
+        
+        if (nombreJuego.includes('juego de tablón')) {
+            // JUEGO DE TABLÓN: Solo color de cubremantel
+            selectorColor.classList.remove('selector-oculto');
+            selectorColor.classList.add('selector-visible');
+            
+            const labelColor = selectorColor.querySelector('label');
+            if (labelColor) {
+                labelColor.textContent = 'Color del Cubremantel';
+            }
+            
+            const colorSelect = document.getElementById('color-select');
+            colorSelect.innerHTML = `
+                <option value="">Selecciona un color</option>
+                <option value="Blanco">Blanco</option>
+                <option value="Rojo">Rojo</option>
+                <option value="Azul">Azul</option>
+                <option value="Negro">Negro</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Dorado">Dorado</option>
+                <option value="Verde">Verde</option>
+                <option value="Morado">Morado</option>
+            `;
+            
+        } else if (nombreJuego.includes('mesa redonda de lujo')) {
+            // MESA REDONDA DE LUJO: Color de cubremantel + Color de moño
+            selectorColor.classList.remove('selector-oculto');
+            selectorColor.classList.add('selector-visible');
+            
+            const labelColor = selectorColor.querySelector('label');
+            if (labelColor) {
+                labelColor.textContent = 'Color del Cubremantel';
+            }
+            
+            const colorSelect = document.getElementById('color-select');
+            colorSelect.innerHTML = `
+                <option value="">Selecciona un color</option>
+                <option value="Blanco">Blanco</option>
+                <option value="Rojo">Rojo</option>
+                <option value="Azul">Azul</option>
+                <option value="Negro">Negro</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Dorado">Dorado</option>
+                <option value="Verde">Verde</option>
+                <option value="Morado">Morado</option>
+            `;
+            
+            // Agregar selector de color de moño (usar selector de tamaño como segundo selector)
+            selectorTamano.classList.remove('selector-oculto');
+            selectorTamano.classList.add('selector-visible');
+            
+            const labelMono = selectorTamano.querySelector('label');
+            if (labelMono) {
+                labelMono.textContent = 'Color del Moño';
+            }
+            
+            const monoSelect = document.getElementById('tamano-select');
+            monoSelect.innerHTML = `
+                <option value="">Selecciona un color</option>
+                <option value="Blanco">Blanco</option>
+                <option value="Rojo">Rojo</option>
+                <option value="Azul">Azul</option>
+                <option value="Negro">Negro</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Dorado">Dorado</option>
+                <option value="Verde">Verde</option>
+                <option value="Morado">Morado</option>
+            `;
+            
+        } else if (nombreJuego.includes('mesa redonda')) {
+            // MESA REDONDA NORMAL: Solo color de cubremantel
+            selectorColor.classList.remove('selector-oculto');
+            selectorColor.classList.add('selector-visible');
+            
+            const labelColor = selectorColor.querySelector('label');
+            if (labelColor) {
+                labelColor.textContent = 'Color del Cubremantel';
+            }
+            
+            const colorSelect = document.getElementById('color-select');
+            colorSelect.innerHTML = `
+                <option value="">Selecciona un color</option>
+                <option value="Blanco">Blanco</option>
+                <option value="Rojo">Rojo</option>
+                <option value="Azul">Azul</option>
+                <option value="Negro">Negro</option>
+                <option value="Rosa">Rosa</option>
+                <option value="Dorado">Dorado</option>
+                <option value="Verde">Verde</option>
+                <option value="Morado">Morado</option>
+            `;
+            
+        } else {
+            // Otros juegos: ocultar selectores
+            selectorColor.classList.add('selector-oculto');
+            selectorColor.classList.remove('selector-visible');
+        }
         
         calcularSubtotal();
         return;
@@ -616,6 +749,12 @@ async function cargarDetallesProducto() {
     if (productoData.tiene_colores) {
         selectorColor.classList.remove('selector-oculto');
         selectorColor.classList.add('selector-visible');
+        
+        // Restaurar label original
+        const labelColor = selectorColor.querySelector('label');
+        if (labelColor) {
+            labelColor.textContent = 'Color';
+        }
         
         // Cargar colores desde la base de datos
         if (typeof supabase !== 'undefined') {
@@ -641,7 +780,10 @@ async function cargarDetallesProducto() {
         selectorColor.classList.add('selector-oculto');
     }
 
-    if (productoData.tiene_tamanos) {
+    // No mostrar selector de tamaño si el nombre ya incluye tamaño (6x6, 10x15, etc)
+    const nombreIncluyeTamano = /\d+x\d+/i.test(productoData.nombre);
+    
+    if (productoData.tiene_tamanos && !nombreIncluyeTamano) {
         selectorTamano.classList.remove('selector-oculto');
         selectorTamano.classList.add('selector-visible');
         
@@ -681,12 +823,18 @@ function calcularSubtotal() {
     const productoData = JSON.parse(select.selectedOptions[0].dataset.producto);
     const cantidad = parseInt(document.getElementById('cantidad-producto').value) || 0;
     
-    let precioUnitario = productoData.precio_renta;
+    // Usar precio personalizado si existe, si no, el precio por defecto
+    const precioInput = document.getElementById('precio-personalizado');
+    let precioUnitario = precioInput && precioInput.value ? 
+        parseFloat(precioInput.value) : productoData.precio_renta;
 
-    // Si tiene tamaños, usar el precio del tamaño seleccionado
+    // Si tiene tamaños, usar el precio del tamaño seleccionado (solo para productos NO juego)
     const tamanoSelect = document.getElementById('tamano-select');
-    if (tamanoSelect.value && tamanoSelect.selectedOptions[0].dataset.precio) {
+    if (!productoData.es_juego && tamanoSelect.value && tamanoSelect.selectedOptions[0].dataset.precio) {
         precioUnitario = parseFloat(tamanoSelect.selectedOptions[0].dataset.precio);
+        if (precioInput) {
+            precioInput.value = precioUnitario;
+        }
     }
 
     const subtotal = precioUnitario * cantidad;
@@ -711,9 +859,13 @@ function agregarItemAlPedido() {
         return;
     }
 
-    let precioUnitario = productoData.precio_renta;
+    // Usar precio personalizado o precio por defecto
+    const precioInput = document.getElementById('precio-personalizado');
+    let precioUnitario = precioInput && precioInput.value ? 
+        parseFloat(precioInput.value) : productoData.precio_renta;
+    
     const tamanoSelect = document.getElementById('tamano-select');
-    if (tamanoSelect.value && tamanoSelect.selectedOptions[0].dataset.precio) {
+    if (!productoData.es_juego && tamanoSelect.value && tamanoSelect.selectedOptions[0].dataset.precio) {
         precioUnitario = parseFloat(tamanoSelect.selectedOptions[0].dataset.precio);
     }
 
@@ -722,17 +874,26 @@ function agregarItemAlPedido() {
         nombre: productoData.nombre,
         cantidad: cantidad,
         precio_unitario: precioUnitario,
-        subtotal: cantidad * precioUnitario
+        subtotal: cantidad * precioUnitario,
+        es_juego: productoData.es_juego || false
     };
 
-    // Agregar color si aplica
+    // Agregar color de cubremantel para juegos
     const colorSelect = document.getElementById('color-select');
-    if (colorSelect.value) {
+    if (productoData.es_juego && colorSelect.value) {
+        item.color_cubremantel = colorSelect.options[colorSelect.selectedIndex].text;
+    } else if (colorSelect.value) {
+        // Color normal para productos no-juego
         item.color = colorSelect.options[colorSelect.selectedIndex].text;
     }
 
-    // Agregar tamaño si aplica
-    if (tamanoSelect.value) {
+    // Agregar color de moño para Mesa Redonda de Lujo (viene en tamano-select)
+    const nombreJuego = productoData.nombre.toLowerCase();
+    
+    if (productoData.es_juego && nombreJuego.includes('mesa redonda de lujo') && tamanoSelect.value) {
+        item.color_mono = tamanoSelect.options[tamanoSelect.selectedIndex].text;
+    } else if (tamanoSelect.value && !productoData.es_juego) {
+        // Tamaño normal para productos no-juego
         item.tamano = tamanoSelect.options[tamanoSelect.selectedIndex].text;
     }
 
@@ -875,20 +1036,69 @@ async function guardarPedido(event) {
 
         console.log('✅ Pedido guardado:', pedidoData);
 
-        // Expandir items (incluye descomponer juegos en sus componentes)
-        console.log('🎯 Expandiendo juegos...');
-        const itemsExpandidos = await expandirJuegos(itemsPedidoActual);
-        console.log(`✅ ${itemsExpandidos.length} items expandidos (original: ${itemsPedidoActual.length})`);
+        // PASO 2: Preparar items - Guardar juegos SIN expandir + componentes para inventario
+        const itemsParaGuardar = [];
 
-        // Preparar items para guardar
-        const itemsParaGuardar = itemsExpandidos.map(item => ({
-            pedido_id: pedidoData.id,
-            producto_id: item.producto_id,
-            cantidad: item.cantidad,
-            precio_unitario: item.precio_unitario || 0,
-            subtotal: item.subtotal || 0,
-            es_componente_juego: item.es_componente_juego || false
-        }));
+        for (const item of itemsPedidoActual) {
+            const producto = productosDisponibles.find(p => p.id === item.producto_id);
+            
+            if (producto && producto.es_juego) {
+                // Es un juego - Guardarlo CON su precio
+                itemsParaGuardar.push({
+                    pedido_id: pedidoData.id,
+                    producto_id: item.producto_id,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.precio_unitario,
+                    subtotal: item.subtotal,
+                    es_juego: true,
+                    color_cubremantel: item.color_cubremantel || null,
+                    color_mono: item.color_mono || null,
+                    es_componente_juego: false
+                });
+                
+                console.log(`🎯 Juego guardado: ${item.nombre} - ${formatCurrency(item.subtotal)}`);
+                
+                // Buscar componentes para deducir inventario
+                const { data: componentes, error } = await supabase
+                    .from('juego_componentes')
+                    .select('producto_id, cantidad')
+                    .eq('juego_id', item.producto_id);
+
+                if (componentes && componentes.length > 0) {
+                    // Guardar componentes con precio $0 para inventario
+                    for (const componente of componentes) {
+                        const productoCom = productosDisponibles.find(p => p.id === componente.producto_id);
+                        if (productoCom) {
+                            itemsParaGuardar.push({
+                                pedido_id: pedidoData.id,
+                                producto_id: componente.producto_id,
+                                cantidad: componente.cantidad * item.cantidad,
+                                precio_unitario: 0,
+                                subtotal: 0,
+                                es_componente_juego: true,
+                                juego_padre_id: item.producto_id,
+                                es_juego: false
+                            });
+                        }
+                    }
+                }
+            } else {
+                // No es juego - guardarlo normal
+                itemsParaGuardar.push({
+                    pedido_id: pedidoData.id,
+                    producto_id: item.producto_id,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.precio_unitario,
+                    subtotal: item.subtotal,
+                    color: item.color || null,
+                    tamano: item.tamano || null,
+                    es_juego: false,
+                    es_componente_juego: false
+                });
+            }
+        }
+
+        console.log(`✅ ${itemsParaGuardar.length} items preparados para guardar`);
 
         // Guardar todos los items (juegos + componentes)
         const { error: itemsError } = await supabase
@@ -900,7 +1110,7 @@ async function guardarPedido(event) {
             throw itemsError;
         }
 
-        console.log(`✅ ${itemsParaGuardar.length} items guardados (incluyendo componentes de juegos)`);
+        console.log(`✅ ${itemsParaGuardar.length} items guardados correctamente`);
 
         alert('✅ Pedido guardado exitosamente');
         await cargarPedidos();
@@ -985,28 +1195,47 @@ function verDetallesPedido(pedidoId) {
 
     let itemsHtml = '<p>No hay items en este pedido</p>';
     if (pedido.pedido_items && pedido.pedido_items.length > 0) {
-        itemsHtml = `
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio</th>
-                        <th>Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${pedido.pedido_items.map(item => `
+        // Filtrar solo items que NO son componentes de juegos
+        const itemsVisibles = pedido.pedido_items.filter(item => !item.es_componente_juego);
+        
+        if (itemsVisibles.length > 0) {
+            itemsHtml = `
+                <table class="items-table">
+                    <thead>
                         <tr>
-                            <td>${item.productos ? item.productos.nombre : 'Producto'}</td>
-                            <td>${item.cantidad}</td>
-                            <td>${formatCurrency(item.precio_unitario || 0)}</td>
-                            <td>${formatCurrency(item.subtotal || 0)}</td>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Subtotal</th>
                         </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
+                    </thead>
+                    <tbody>
+                        ${itemsVisibles.map(item => {
+                            let nombreProducto = item.productos ? item.productos.nombre : 'Producto';
+                            
+                            // Si tiene color de cubremantel, agregarlo
+                            if (item.color_cubremantel) {
+                                nombreProducto += ` (Cubremantel: ${item.color_cubremantel})`;
+                            }
+                            
+                            // Si tiene color de moño, agregarlo
+                            if (item.color_mono) {
+                                nombreProducto += ` (Moño: ${item.color_mono})`;
+                            }
+                            
+                            return `
+                                <tr>
+                                    <td>${nombreProducto}</td>
+                                    <td>${item.cantidad}</td>
+                                    <td>${formatCurrency(item.precio_unitario || 0)}</td>
+                                    <td>${formatCurrency(item.subtotal || 0)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
     }
 
     const contenido = `
@@ -1063,12 +1292,22 @@ function verDetallesPedido(pedidoId) {
         <div class="table-total">
             <div class="table-total-label">Total del Pedido</div>
             <div class="table-total-value">${formatCurrency(pedido.total || 0)}</div>
-            ${!pedido.pagado && pedido.anticipo > 0 ? `
-                <div class="table-total-label" style="margin-top: 0.5rem;">Anticipo: ${formatCurrency(pedido.anticipo)}</div>
-            ` : ''}
-            ${pedido.pagado ? `
-                <div class="table-total-label" style="margin-top: 0.5rem; color: var(--success-color);">✓ Pagado</div>
-            ` : ''}
+            ${(() => {
+                if (pedido.pagado) {
+                    // Caso 1: Pagado completo
+                    return `<div class="table-total-label" style="margin-top: 0.5rem; color: #10b981; font-weight: bold;">✓ PAGADO COMPLETO</div>`;
+                } else if (pedido.anticipo > 0) {
+                    // Caso 2: Con anticipo (pago parcial)
+                    const saldo = (pedido.total || 0) - pedido.anticipo;
+                    return `
+                        <div class="table-total-label" style="margin-top: 0.5rem;">Anticipo: ${formatCurrency(pedido.anticipo)}</div>
+                        <div class="table-total-label" style="margin-top: 0.25rem; color: #f59e0b; font-weight: bold;">Saldo pendiente: ${formatCurrency(saldo)}</div>
+                    `;
+                } else {
+                    // Caso 3: No pagado (sin anticipo)
+                    return `<div class="table-total-label" style="margin-top: 0.5rem; color: #ef4444; font-weight: bold;">⚠️ PAGO PENDIENTE</div>`;
+                }
+            })()}
         </div>
     `;
 
@@ -1083,377 +1322,291 @@ function cerrarModalDetalles() {
 }
 
 // Generar y descargar nota
+// Generar y descargar nota (para pedidos nuevos antes de guardar)
 function generarYDescargarNota() {
     if (itemsPedidoActual.length === 0) {
         alert('Debes agregar items al pedido antes de generar la nota');
         return;
     }
 
-    alert('Función de generar nota en desarrollo. El pedido se guardará sin generar PDF.');
+    alert('⚠️ Esta función genera una vista previa. El pedido aún no se ha guardado. Usa el botón "Guardar Pedido" para guardarlo en la base de datos.');
 }
 
 // Descargar nota de un pedido existente
-function descargarNotaPedido() {
-    if (!pedidoActualId) {
-        alert('No hay pedido seleccionado');
-        return;
-    }
-
-    const pedido = pedidosData.find(p => p.id === pedidoActualId);
-    if (!pedido) {
-        alert('No se encontró el pedido');
-        return;
-    }
-
+async function descargarNotaPedido() {
+    if (!pedidoActualId) return;
+    
     try {
-        generarNotaPDF(pedido);
+        // Buscar el pedido
+        const pedido = pedidosData.find(p => p.id === pedidoActualId);
+        if (!pedido) {
+            alert('No se encontró el pedido');
+            return;
+        }
+
+        console.log('📄 Generando PDF para pedido:', pedido.id);
+
+        // Cargar jsPDF si no está cargado
+        if (typeof window.jspdf === 'undefined') {
+            console.log('⏳ Cargando jsPDF...');
+            await cargarJsPDF();
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Configuración de colores
+        const azulOscuro = [25, 48, 91];
+        const grisOscuro = [60, 60, 60];
+        const azulClaro = [52, 152, 219];
+
+        // ==================== ENCABEZADO ====================
+        doc.setFillColor(azulOscuro[0], azulOscuro[1], azulOscuro[2]);
+        doc.rect(0, 0, 210, 45, 'F');
+
+        // Título principal
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('El Rinconcito Costeño', 105, 12, { align: 'center' });
+
+        // Subtítulo
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Renta de Mobiliario para Eventos', 105, 19, { align: 'center' });
+
+        // Teléfonos
+        doc.setFontSize(9);
+        doc.text('Tel: 954-124-2921 | 954-125-1757', 105, 26, { align: 'center' });
+
+        // Dirección
+        doc.text('Bajos de Chila, Colonia Las Flores', 105, 32, { align: 'center' });
+
+        // "NOTA DE PEDIDO"
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.text('NOTA DE PEDIDO', 105, 40, { align: 'center' });
+
+        // ==================== INFORMACIÓN DEL CLIENTE ====================
+        let yPos = 55;
+
+        doc.setTextColor(grisOscuro[0], grisOscuro[1], grisOscuro[2]);
+        doc.setFillColor(240, 240, 240);
+        doc.roundedRect(15, yPos - 5, 85, 25, 2, 2, 'F');
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORMACIÓN DEL CLIENTE', 20, yPos);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(`Nombre: ${pedido.cliente_nombre}`, 20, yPos + 7);
+        doc.text(`Teléfono: ${pedido.cliente_telefono || 'N/A'}`, 20, yPos + 14);
+
+        // ==================== PEDIDO # ====================
+        doc.setFillColor(azulClaro[0], azulClaro[1], azulClaro[2]);
+        doc.roundedRect(110, yPos - 5, 85, 10, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        
+        const fechaPedido = new Date(pedido.fecha_evento);
+        const pedidoNumero = `${fechaPedido.getDate()}-${fechaPedido.getMonth() + 1}-${fechaPedido.getFullYear()}`;
+        doc.text(`Pedido #${pedidoNumero}`, 152.5, yPos, { align: 'center' });
+
+        // ==================== INFORMACIÓN DEL EVENTO ====================
+        yPos += 35;
+
+        doc.setTextColor(grisOscuro[0], grisOscuro[1], grisOscuro[2]);
+        doc.setFillColor(240, 240, 240);
+        doc.roundedRect(15, yPos - 5, 180, 30, 2, 2, 'F');
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORMACIÓN DEL EVENTO', 20, yPos);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        
+        const fechaFormateada = formatearFechaSegura(pedido.fecha_evento);
+        doc.text(`Fecha: ${fechaFormateada}`, 20, yPos + 7);
+        doc.text(`Hora: ${formatearHoraSegura(pedido.hora_evento)}`, 20, yPos + 14);
+        doc.text(`Lugar: ${pedido.lugar}`, 20, yPos + 21);
+
+        if (pedido.lugar_descripcion) {
+            doc.text(`Dirección: ${pedido.lugar_descripcion}`, 100, yPos + 7);
+        }
+
+        // ==================== ITEMS DEL PEDIDO ====================
+        yPos += 45;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('ITEMS DEL PEDIDO', 20, yPos);
+
+        yPos += 5;
+
+        // Encabezados de tabla
+        doc.setFillColor(azulOscuro[0], azulOscuro[1], azulOscuro[2]);
+        doc.rect(15, yPos, 180, 8, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PRODUCTO', 20, yPos + 5);
+        doc.text('CANT.', 125, yPos + 5, { align: 'right' });
+        doc.text('PRECIO UNIT.', 150, yPos + 5, { align: 'right' });
+        doc.text('SUBTOTAL', 185, yPos + 5, { align: 'right' });
+
+        yPos += 8;
+
+        // Filtrar items NO componentes
+        const itemsVisibles = pedido.pedido_items.filter(item => !item.es_componente_juego);
+
+        // Items
+        doc.setTextColor(grisOscuro[0], grisOscuro[1], grisOscuro[2]);
+        doc.setFont('helvetica', 'normal');
+        
+        itemsVisibles.forEach((item, index) => {
+            if (yPos > 250) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            // Fondo alternado
+            if (index % 2 === 0) {
+                doc.setFillColor(248, 248, 248);
+                doc.rect(15, yPos, 180, 8, 'F');
+            }
+
+            let nombreProducto = item.productos ? item.productos.nombre : 'Producto';
+            
+            // Agregar color de cubremantel si existe
+            if (item.color_cubremantel) {
+                nombreProducto += ` (Cubremantel: ${item.color_cubremantel})`;
+            }
+            
+            // Agregar color de moño si existe
+            if (item.color_mono) {
+                nombreProducto += ` (Moño: ${item.color_mono})`;
+            }
+
+            doc.text(nombreProducto, 20, yPos + 5);
+            doc.text(item.cantidad.toString(), 125, yPos + 5, { align: 'right' });
+            doc.text(formatCurrency(item.precio_unitario || 0), 150, yPos + 5, { align: 'right' });
+            doc.text(formatCurrency(item.subtotal || 0), 185, yPos + 5, { align: 'right' });
+
+            yPos += 8;
+        });
+
+        // ==================== TOTAL ====================
+        yPos += 5;
+
+        doc.setFillColor(azulOscuro[0], azulOscuro[1], azulOscuro[2]);
+        doc.rect(130, yPos, 65, 8, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text('TOTAL:', 140, yPos + 5);
+        doc.text(formatCurrency(pedido.total || 0), 185, yPos + 5, { align: 'right' });
+
+        yPos += 10;
+
+        // ==================== ESTADO DE PAGO ====================
+        doc.setTextColor(grisOscuro[0], grisOscuro[1], grisOscuro[2]);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+
+        if (pedido.pagado) {
+            // Pagado completo
+            doc.setFillColor(16, 185, 129);
+            doc.roundedRect(130, yPos, 65, 8, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PAGADO COMPLETO', 162.5, yPos + 5, { align: 'center' });
+        } else if (pedido.anticipo > 0) {
+            // Con anticipo
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Anticipo: ${formatCurrency(pedido.anticipo)}`, 140, yPos + 3);
+            const saldo = (pedido.total || 0) - pedido.anticipo;
+            doc.text(`Saldo: ${formatCurrency(saldo)}`, 140, yPos + 9);
+            
+            yPos += 15;
+            doc.setFillColor(245, 158, 11);
+            doc.roundedRect(130, yPos, 65, 8, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.text('ANTICIPO RECIBIDO', 162.5, yPos + 5, { align: 'center' });
+        } else {
+            // No pagado
+            yPos += 2;
+            doc.setFillColor(239, 68, 68);
+            doc.roundedRect(130, yPos, 65, 8, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PAGO PENDIENTE', 162.5, yPos + 5, { align: 'center' });
+        }
+
+        // ==================== PIE DE PÁGINA ====================
+        yPos = 260;
+
+        doc.setTextColor(grisOscuro[0], grisOscuro[1], grisOscuro[2]);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Términos y Condiciones:', 20, yPos);
+
+        doc.setFont('helvetica', 'normal');
+        doc.text('• El mobiliario debe ser devuelto en las mismas condiciones.', 20, yPos + 5);
+        doc.text('• Cualquier daño será cobrado al cliente.', 20, yPos + 10);
+        doc.text('• La fecha de devolución es al día siguiente del evento.', 20, yPos + 15);
+
+        // Línea de firma
+        yPos += 25;
+        doc.line(20, yPos, 80, yPos);
+        doc.text('Firma del Cliente', 50, yPos + 5, { align: 'center' });
+
+        // Fecha de emisión
+        const hoy = new Date();
+        const fechaEmision = hoy.toLocaleDateString('es-MX', { 
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric' 
+        });
+        doc.setFontSize(7);
+        doc.setTextColor(120, 120, 120);
+        doc.text(`Nota emitida el ${fechaEmision}`, 105, 285, { align: 'center' });
+
+        // ==================== GUARDAR PDF ====================
+        const nombreArchivo = `Nota_${pedidoNumero}_${pedido.cliente_nombre.replace(/\s+/g, '-')}.pdf`;
+        doc.save(nombreArchivo);
+
+        console.log('✅ PDF generado:', nombreArchivo);
+
     } catch (error) {
-        console.error('Error al generar PDF:', error);
-        alert('Error al generar la nota: ' + error.message);
+        console.error('❌ Error al generar PDF:', error);
+        alert(`Error al generar la nota: ${error.message}`);
     }
 }
 
-// FUNCIÓN CORREGIDA: generarNotaPDF
-// REEMPLAZAR COMPLETAMENTE la función generarNotaPDF en pedidos.js
-// (busca "function generarNotaPDF(pedido) {" y reemplaza toda la función)
+// Cargar librería jsPDF
+function cargarJsPDF() {
+    return new Promise((resolve, reject) => {
+        if (typeof window.jspdf !== 'undefined') {
+            resolve();
+            return;
+        }
 
-function generarNotaPDF(pedido) {
-    // Verificar que jsPDF esté disponible
-    if (typeof window.jspdf === 'undefined') {
-        alert('jsPDF no está cargado. Por favor recarga la página.');
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Configuración de colores
-    const primaryColor = [12, 123, 179]; // #0c7bb3
-    const darkGray = [17, 24, 39];
-    const lightGray = [107, 114, 128];
-    const backgroundColor = [249, 250, 251];
-
-    // Márgenes y dimensiones
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    const margin = 20;
-    let yPos = margin;
-
-    // =====================================
-    // CALCULAR NÚMERO DE PEDIDO FORMATEADO
-    // =====================================
-    // Obtener todos los pedidos del mes actual para calcular el número
-    const fechaPedido = new Date(pedido.created_at || new Date());
-    const mes = fechaPedido.getMonth() + 1; // 1-12
-    const anio = fechaPedido.getFullYear();
-    
-    // Filtrar pedidos del mismo mes/año
-    const pedidosDelMes = pedidosData.filter(p => {
-        const fechaP = new Date(p.created_at || p.fecha_evento);
-        return fechaP.getMonth() + 1 === mes && fechaP.getFullYear() === anio;
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => {
+            console.log('✅ jsPDF cargado');
+            resolve();
+        };
+        script.onerror = () => {
+            reject(new Error('No se pudo cargar jsPDF'));
+        };
+        document.head.appendChild(script);
     });
-    
-    // Encontrar el índice de este pedido
-    const indicePedido = pedidosDelMes.findIndex(p => p.id === pedido.id) + 1;
-    const numeroPedido = indicePedido > 0 ? indicePedido : pedidosDelMes.length;
-    
-    // Formato: (101-12-2025) = pedido 101 de diciembre 2025
-    const numeroPedidoFormateado = `${numeroPedido}-${mes.toString().padStart(2, '0')}-${anio}`;
-
-    // =====================================
-    // HEADER CON FONDO
-    // =====================================
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, pageWidth, 50, 'F');
-
-    // Logo/Nombre de la empresa (blanco)
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text('El Rinconcito Costeño', margin, 18);
-
-    // Subtítulo
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Renta de Mobiliario para Eventos', margin, 27);
-
-    // Contacto en header - LÍNEA 1
-    doc.setFontSize(8);
-    doc.text('Tel: 954-124-2921 | 954-125-1757', margin, 35);
-    
-    // Dirección en header - LÍNEA 2
-    doc.setFontSize(8);
-    doc.text('Bajos de Chila, Colonia Las Flores', margin, 42);
-
-    yPos = 60;
-
-    // =====================================
-    // TÍTULO DE LA NOTA
-    // =====================================
-    doc.setTextColor(...darkGray);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('NOTA DE PEDIDO', pageWidth / 2, yPos, { align: 'center' });
-
-    yPos += 15;
-
-    // =====================================
-    // INFORMACIÓN DEL PEDIDO (2 columnas)
-    // =====================================
-    const colWidth = (pageWidth - 2 * margin) / 2;
-    
-    // Columna izquierda - Cliente
-    doc.setFillColor(...backgroundColor);
-    doc.rect(margin, yPos, colWidth - 5, 35, 'F');
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...primaryColor);
-    doc.text('INFORMACIÓN DEL CLIENTE', margin + 5, yPos + 7);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...darkGray);
-    doc.setFontSize(9);
-    doc.text(`Nombre: ${pedido.cliente_nombre}`, margin + 5, yPos + 15);
-    if (pedido.cliente_telefono) {
-        doc.text(`Teléfono: ${pedido.cliente_telefono}`, margin + 5, yPos + 22);
-    }
-    // NÚMERO DE PEDIDO CORREGIDO
-    doc.text(`Pedido #${numeroPedidoFormateado}`, margin + 5, yPos + 29);
-
-    // Columna derecha - Evento
-    doc.setFillColor(...backgroundColor);
-    doc.rect(margin + colWidth + 5, yPos, colWidth - 5, 35, 'F');
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...primaryColor);
-    doc.text('INFORMACIÓN DEL EVENTO', margin + colWidth + 10, yPos + 7);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...darkGray);
-    
-    const fechaFormateada = formatearFechaSegura(pedido.fecha_evento);
-    doc.text(`Fecha: ${fechaFormateada}`, margin + colWidth + 10, yPos + 15);
-    doc.text(`Hora: ${formatearHoraSegura(pedido.hora_evento)}`, margin + colWidth + 10, yPos + 22);
-    doc.text(`Lugar: ${pedido.lugar || 'No especificado'}`, margin + colWidth + 10, yPos + 29);
-
-    yPos += 45;
-
-    // Dirección completa si existe
-    if (pedido.lugar_descripcion) {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(...lightGray);
-        const direccionLines = doc.splitTextToSize(`Dirección: ${pedido.lugar_descripcion}`, pageWidth - 2 * margin);
-        doc.text(direccionLines, margin, yPos);
-        yPos += direccionLines.length * 4 + 5;
-    }
-
-    yPos += 5;
-
-    // =====================================
-    // TABLA DE ITEMS
-    // =====================================
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(...darkGray);
-    doc.text('ITEMS DEL PEDIDO', margin, yPos);
-    yPos += 8;
-
-    // Header de tabla
-    doc.setFillColor(...primaryColor);
-    doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PRODUCTO', margin + 3, yPos + 5.5);
-    doc.text('CANT.', pageWidth - margin - 60, yPos + 5.5);
-    doc.text('PRECIO UNIT.', pageWidth - margin - 45, yPos + 5.5);
-    doc.text('SUBTOTAL', pageWidth - margin - 3, yPos + 5.5, { align: 'right' });
-    
-    yPos += 10;
-
-    // Items
-    doc.setTextColor(...darkGray);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-
-    if (pedido.pedido_items && pedido.pedido_items.length > 0) {
-        pedido.pedido_items.forEach((item, index) => {
-            const nombreProducto = item.productos ? item.productos.nombre : 'Producto';
-            const cantidad = item.cantidad;
-            const precioUnit = formatCurrency(item.precio_unitario || 0);
-            const subtotal = formatCurrency(item.subtotal || 0);
-
-            // Fila alternada
-            if (index % 2 === 0) {
-                doc.setFillColor(248, 249, 250);
-                doc.rect(margin, yPos - 4, pageWidth - 2 * margin, 7, 'F');
-            }
-
-            doc.text(nombreProducto, margin + 3, yPos);
-            doc.text(cantidad.toString(), pageWidth - margin - 57, yPos);
-            doc.text(precioUnit, pageWidth - margin - 45, yPos);
-            doc.text(subtotal, pageWidth - margin - 3, yPos, { align: 'right' });
-
-            yPos += 7;
-        });
-    } else {
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(...lightGray);
-        doc.text('No hay items en este pedido', margin + 3, yPos);
-        yPos += 7;
-    }
-
-    yPos += 5;
-
-    // =====================================
-    // TOTALES Y ESTADO DE PAGO
-    // =====================================
-    const totalBoxY = yPos;
-    
-    // Determinar altura según el estado de pago
-    let totalBoxHeight = 15; // Base
-    if (!pedido.pagado && pedido.anticipo > 0) {
-        totalBoxHeight = 25; // Con anticipo y saldo
-    }
-    
-    // Fondo del total
-    doc.setFillColor(...backgroundColor);
-    doc.rect(pageWidth - margin - 70, totalBoxY, 70, totalBoxHeight, 'F');
-    
-    // Línea decorativa
-    doc.setDrawColor(...primaryColor);
-    doc.setLineWidth(2);
-    doc.line(pageWidth - margin - 70, totalBoxY, pageWidth - margin, totalBoxY);
-
-    yPos += 8;
-
-    // Total
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(...darkGray);
-    doc.text('TOTAL:', pageWidth - margin - 65, yPos);
-    doc.setTextColor(...primaryColor);
-    doc.setFontSize(14);
-    doc.text(formatCurrency(pedido.total || 0), pageWidth - margin - 5, yPos, { align: 'right' });
-
-    // ESTADO DE PAGO CORREGIDO
-    if (!pedido.pagado && pedido.anticipo > 0) {
-        // Caso: Dio anticipo
-        yPos += 7;
-        doc.setFontSize(9);
-        doc.setTextColor(...lightGray);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Anticipo: ${formatCurrency(pedido.anticipo)}`, pageWidth - margin - 65, yPos);
-        
-        const saldo = pedido.total - pedido.anticipo;
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...darkGray);
-        doc.text(`Saldo: ${formatCurrency(saldo)}`, pageWidth - margin - 5, yPos, { align: 'right' });
-    }
-
-    yPos += 15;
-
-    // Badge de estado de pago
-    let estadoPago, bgColor, textColor;
-    
-    if (pedido.pagado) {
-        // Pagado completo
-        estadoPago = 'PAGADO COMPLETO';
-        bgColor = [209, 250, 229]; // Verde claro
-        textColor = [4, 120, 87]; // Verde oscuro
-    } else if (pedido.anticipo > 0) {
-        // Anticipo dado
-        estadoPago = 'ANTICIPO RECIBIDO';
-        bgColor = [254, 243, 199]; // Amarillo claro
-        textColor = [180, 83, 9]; // Amarillo oscuro
-    } else {
-        // Pago pendiente
-        estadoPago = 'PAGO PENDIENTE';
-        bgColor = [254, 242, 242]; // Rojo claro
-        textColor = [220, 38, 38]; // Rojo oscuro
-    }
-    
-    doc.setFillColor(...bgColor);
-    doc.setTextColor(...textColor);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    const estadoWidth = doc.getTextWidth(estadoPago) + 10;
-    doc.rect(pageWidth - margin - estadoWidth, yPos - 5, estadoWidth, 8, 'F');
-    doc.text(estadoPago, pageWidth - margin - estadoWidth / 2, yPos, { align: 'center' });
-
-    yPos += 15;
-
-    // =====================================
-    // COMENTARIOS
-    // =====================================
-    if (pedido.comentarios) {
-        doc.setFillColor(254, 243, 199);
-        doc.setDrawColor(245, 158, 11);
-        doc.setLineWidth(0.5);
-        const comentariosBox = doc.splitTextToSize(pedido.comentarios, pageWidth - 2 * margin - 10);
-        const boxHeight = comentariosBox.length * 5 + 10;
-        
-        doc.rect(margin, yPos, pageWidth - 2 * margin, boxHeight, 'FD');
-        
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(180, 83, 9);
-        doc.text('COMENTARIOS:', margin + 5, yPos + 6);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...darkGray);
-        doc.setFontSize(8);
-        doc.text(comentariosBox, margin + 5, yPos + 12);
-        
-        yPos += boxHeight + 5;
-    }
-
-    // =====================================
-    // FOOTER
-    // =====================================
-    const footerY = pageHeight - 30;
-    
-    doc.setDrawColor(...lightGray);
-    doc.setLineWidth(0.5);
-    doc.line(margin, footerY, pageWidth - margin, footerY);
-
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...lightGray);
-    
-    doc.text('Términos y Condiciones:', margin, footerY + 5);
-    doc.setFontSize(7);
-    doc.text('• El mobiliario debe ser devuelto en las mismas condiciones.', margin, footerY + 10);
-    doc.text('• Cualquier daño será cobrado al cliente.', margin, footerY + 14);
-    doc.text('• La fecha de devolución es al día siguiente del evento.', margin, footerY + 18);
-
-    // Firma
-    doc.setFontSize(8);
-    doc.setTextColor(...darkGray);
-    doc.text('_____________________________', pageWidth - margin - 60, footerY + 10);
-    doc.setFontSize(7);
-    doc.setTextColor(...lightGray);
-    doc.text('Firma del Cliente', pageWidth - margin - 45, footerY + 15);
-
-    // Fecha de emisión
-    const fechaEmision = new Date().toLocaleDateString('es-MX', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
-    doc.setFontSize(7);
-    doc.text(`Nota emitida el ${fechaEmision}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-
-    // =====================================
-    // GUARDAR PDF
-    // =====================================
-    const nombreArchivo = `Nota_${numeroPedidoFormateado}_${pedido.cliente_nombre.replace(/\s+/g, '_')}.pdf`;
-    doc.save(nombreArchivo);
-
-    console.log('✅ Nota generada:', nombreArchivo);
 }
 
 // Cerrar modales al hacer clic fuera

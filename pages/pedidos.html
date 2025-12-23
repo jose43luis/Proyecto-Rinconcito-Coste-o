@@ -127,13 +127,20 @@
                                 <div class="form-group">
                                     <label for="nombre-cliente">Nombre del Cliente</label>
                                     <input type="text" id="nombre-cliente" name="nombre_cliente" 
-                                           placeholder="Nombre completo del cliente" required>
+                                           placeholder="Ej: Juan Pérez" required
+                                           pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                                           title="Solo letras y espacios"
+                                           oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '')">
                                 </div>
 
                                 <div class="form-group">
                                     <label for="telefono-cliente">Teléfono</label>
                                     <input type="tel" id="telefono-cliente" name="telefono_cliente" 
-                                           placeholder="Número de contacto">
+                                           placeholder="Ej: 9541234567"
+                                           pattern="[0-9]{10}"
+                                           maxlength="10"
+                                           title="Exactamente 10 dígitos"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                                 </div>
 
                                 <div class="form-row">
@@ -144,7 +151,25 @@
 
                                     <div class="form-group">
                                         <label for="hora-evento">Hora del Evento</label>
-                                        <input type="time" id="hora-evento" name="hora_evento" required>
+                                        <select id="hora-evento" name="hora_evento" required style="width: 100%; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem;">
+                                            <option value="">Selecciona una hora</option>
+                                            <option value="08:00">8:00 AM</option>
+                                            <option value="09:00">9:00 AM</option>
+                                            <option value="10:00">10:00 AM</option>
+                                            <option value="11:00">11:00 AM</option>
+                                            <option value="12:00">12:00 PM</option>
+                                            <option value="13:00">1:00 PM</option>
+                                            <option value="14:00">2:00 PM</option>
+                                            <option value="15:00">3:00 PM</option>
+                                            <option value="16:00">4:00 PM</option>
+                                            <option value="17:00">5:00 PM</option>
+                                            <option value="18:00">6:00 PM</option>
+                                            <option value="19:00">7:00 PM</option>
+                                            <option value="20:00">8:00 PM</option>
+                                            <option value="21:00">9:00 PM</option>
+                                            <option value="22:00">10:00 PM</option>
+                                            <option value="23:00">11:00 PM</option>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -270,6 +295,15 @@
                     <div class="form-group">
                         <label for="cantidad-producto">Cantidad</label>
                         <input type="number" id="cantidad-producto" min="1" value="1" onchange="calcularSubtotal()">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="precio-personalizado">Precio Unitario (editable)</label>
+                        <div class="input-group">
+                            <span class="input-prefix">$</span>
+                            <input type="number" id="precio-personalizado" step="0.01" min="0" placeholder="0.00" onchange="calcularSubtotal()">
+                        </div>
+                        <small style="color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem; display: block;">Deja en blanco para usar el precio por defecto</small>
                     </div>
 
                     <div id="selector-color" class="form-group selector-oculto">

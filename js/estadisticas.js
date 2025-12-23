@@ -28,9 +28,15 @@ function inicializarPeriodo() {
 // Llenar select de años
 function llenarSelectAnos() {
     const selectAnoInline = document.getElementById('select-ano-inline');
+    const selectMesInline = document.getElementById('select-mes-inline');
     const anoActual = new Date().getFullYear();
     
-    // Llenar select inline
+    if (!selectAnoInline || !selectMesInline) {
+        console.error('No se encontraron los selectores de año/mes');
+        return;
+    }
+    
+    // Llenar select inline de año
     for (let ano = anoActual; ano >= anoActual - 5; ano--) {
         const option = document.createElement('option');
         option.value = ano;
@@ -42,8 +48,24 @@ function llenarSelectAnos() {
     selectAnoInline.value = anoActual;
     
     // Seleccionar mes actual
-    const mesActual = new Date().getMonth() + 1;
-    document.getElementById('select-mes-inline').value = mesActual;
+    const mesActual = new Date().getMonth();
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    // Asegurarse de que el select de mes tenga las opciones correctas
+    selectMesInline.innerHTML = '';
+    meses.forEach((mes, index) => {
+        const option = document.createElement('option');
+        option.value = index + 1; // 1-12
+        option.textContent = mes;
+        selectMesInline.appendChild(option);
+    });
+    
+    selectMesInline.value = mesActual + 1;
+    
+    // Agregar event listeners
+    selectAnoInline.addEventListener('change', cargarEstadisticasPersonalizadas);
+    selectMesInline.addEventListener('change', cargarEstadisticasPersonalizadas);
 }
 
 // Cargar estadísticas con período personalizado desde selectores inline

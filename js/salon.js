@@ -245,7 +245,7 @@ function crearCardEvento(evento, fechaEvento, hoy) {
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span>${formatearHoraSegura(evento.hora_inicio)}${evento.hora_fin ? ' - ' + formatearHoraSegura(evento.hora_fin) : ''}</span>
+                    <span>${formatearHoraSegura(evento.hora_inicio)}</span>
                 </div>
 
                 ${evento.num_invitados ? `
@@ -380,7 +380,6 @@ async function guardarEvento() {
         const clienteTelefono = document.getElementById('cliente-telefono-evento')?.value.trim() || '';
         const fechaEvento = document.getElementById('fecha-evento')?.value || '';
         const horaInicio = document.getElementById('hora-inicio')?.value || '';
-        const horaFin = document.getElementById('hora-fin')?.value || '';
         const tipoEvento = document.getElementById('tipo-evento')?.value || '';
         const numInvitados = parseInt(document.getElementById('num-invitados')?.value) || null;
         const precio = parseFloat(document.getElementById('precio-renta')?.value) || 5000;
@@ -394,7 +393,6 @@ async function guardarEvento() {
             clienteTelefono,
             fechaEvento,
             horaInicio,
-            horaFin,
             tipoEvento,
             numInvitados,
             precio,
@@ -438,7 +436,6 @@ async function guardarEvento() {
             cliente_telefono: clienteTelefono || null,
             fecha_evento: fechaEvento,
             hora_inicio: horaInicio,
-            hora_fin: horaFin || null,
             tipo_evento: tipoEvento || null,
             num_invitados: numInvitados,
             precio: precio,
@@ -494,7 +491,7 @@ function verDetallesEvento(eventoId) {
     
     const fechaFormateada = formatearFechaSegura(evento.fecha_evento);
     document.getElementById('modal-fecha').textContent = fechaFormateada;
-    document.getElementById('modal-horario').textContent = `${formatearHoraSegura(evento.hora_inicio)}${evento.hora_fin ? ' - ' + formatearHoraSegura(evento.hora_fin) : ''}`;
+    document.getElementById('modal-horario').textContent = formatearHoraSegura(evento.hora_inicio);
     document.getElementById('modal-tipo').textContent = evento.tipo_evento || 'No especificado';
     document.getElementById('modal-invitados').textContent = evento.num_invitados || 'No especificado';
     document.getElementById('modal-condiciones').textContent = evento.condiciones || 'Sin condiciones especiales';
@@ -503,11 +500,12 @@ function verDetallesEvento(eventoId) {
     
     let estadoPago = '';
     if (evento.pagado) {
-        estadoPago = '<span class="badge badge-pagado">Pagado completamente</span>';
+        estadoPago = '<span class="badge badge-pagado">✓ PAGADO COMPLETO</span>';
     } else if (evento.anticipo > 0) {
-        estadoPago = `<span class="badge badge-anticipo">Anticipo: ${formatCurrency(evento.anticipo)}</span>`;
+        const saldo = (evento.precio || 0) - evento.anticipo;
+        estadoPago = `<span class="badge badge-anticipo">Anticipo: ${formatCurrency(evento.anticipo)} | Saldo: ${formatCurrency(saldo)}</span>`;
     } else {
-        estadoPago = '<span class="badge badge-pendiente">Pendiente de pago</span>';
+        estadoPago = '<span class="badge badge-pendiente">⚠️ PAGO PENDIENTE</span>';
     }
     document.getElementById('modal-pago').innerHTML = estadoPago;
 
@@ -545,7 +543,6 @@ function actualizarResumenEvento() {
     const clienteNombre = document.getElementById('cliente-nombre-evento').value || 'Sin especificar';
     const fechaEvento = document.getElementById('fecha-evento').value;
     const horaInicio = document.getElementById('hora-inicio').value;
-    const horaFin = document.getElementById('hora-fin').value;
     const precio = parseFloat(document.getElementById('precio-renta').value) || 5000;
 
     document.getElementById('resumen-cliente').textContent = clienteNombre;
@@ -558,7 +555,7 @@ function actualizarResumenEvento() {
     }
 
     if (horaInicio) {
-        document.getElementById('resumen-horario').textContent = `${formatearHoraSegura(horaInicio)}${horaFin ? ' - ' + formatearHoraSegura(horaFin) : ''}`;
+        document.getElementById('resumen-horario').textContent = horaInicio;
     } else {
         document.getElementById('resumen-horario').textContent = 'Sin especificar';
     }
@@ -568,7 +565,7 @@ function actualizarResumenEvento() {
 
 // Event listeners para actualizar resumen
 document.addEventListener('DOMContentLoaded', function() {
-    const inputs = ['cliente-nombre-evento', 'fecha-evento', 'hora-inicio', 'hora-fin', 'precio-renta'];
+    const inputs = ['cliente-nombre-evento', 'fecha-evento', 'hora-inicio', 'precio-renta'];
     inputs.forEach(id => {
         const element = document.getElementById(id);
         if (element) {
