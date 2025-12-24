@@ -257,6 +257,7 @@ async function cargarPedidos() {
                     es_componente_juego,
                     juego_padre_id,
                     color_cubremantel,
+                    color_mono,
                     color,
                     tamano,
                     productos!pedido_items_producto_id_fkey (nombre)
@@ -479,6 +480,12 @@ function crearCardPedido(pedido) {
             <div class="pedido-actions">
                 ${botones}
                 <button class="btn btn-secondary btn-sm" onclick="verDetallesPedido('${pedido.id}')">Ver Detalles</button>
+                <button class="btn btn-danger btn-sm" onclick="eliminarPedido('${pedido.id}')" style="margin-left: auto;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    
+                </button>
             </div>
         </div>
     `;
@@ -591,6 +598,94 @@ async function obtenerDescripcionJuego(juegoId) {
     }
 }
 
+// Cargar colores disponibles para juegos (Cubremantel o Moño)
+async function cargarColoresParaJuego(nombreProducto, selectId) {
+    try {
+        if (typeof supabase === 'undefined') {
+            console.warn('⚠️ Supabase no configurado');
+            return;
+        }
+
+        // Buscar el producto por nombre (ignorar mayúsculas/minúsculas y acentos)
+        const { data: productos, error: errorProducto } = await supabase
+            .from('productos')
+            .select('id, nombre')
+            .ilike('nombre', `%${nombreProducto}%`)
+            .limit(1);
+
+        if (errorProducto || !productos || productos.length === 0) {
+            console.error(`❌ No se encontró el producto: ${nombreProducto}`);
+            console.log('🔍 Intentando búsqueda alternativa...');
+            
+            // Búsqueda alternativa sin acentos
+            const nombreSinAcentos = nombreProducto.replace(/ñ/g, 'n').replace(/Ñ/g, 'N');
+            const { data: productosAlt, error: errorAlt } = await supabase
+                .from('productos')
+                .select('id, nombre')
+                .or(`nombre.ilike.%${nombreProducto}%,nombre.ilike.%${nombreSinAcentos}%`)
+                .limit(1);
+            
+            if (errorAlt || !productosAlt || productosAlt.length === 0) {
+                console.error(`❌ Tampoco se encontró con búsqueda alternativa`);
+                return;
+            }
+            
+            console.log(`✅ Producto encontrado con búsqueda alternativa: "${productosAlt[0].nombre}" (ID: ${productosAlt[0].id})`);
+            
+            // Cargar colores para este producto
+            await cargarColoresDeProducto(productosAlt[0].id, productosAlt[0].nombre, selectId);
+            return;
+        }
+
+        console.log(`✅ Producto encontrado: "${productos[0].nombre}" (ID: ${productos[0].id})`);
+        
+        // Cargar colores para este producto
+        await cargarColoresDeProducto(productos[0].id, productos[0].nombre, selectId);
+        
+    } catch (error) {
+        console.error(`❌ Error al cargar colores para ${nombreProducto}:`, error);
+    }
+}
+
+// Función auxiliar para cargar colores de un producto específico
+async function cargarColoresDeProducto(productoId, nombreProducto, selectId) {
+    try {
+        // Cargar colores disponibles
+        const { data: colores, error: errorColores } = await supabase
+            .from('producto_colores')
+            .select('color, stock_disponible')
+            .eq('producto_id', productoId)
+            .order('color');
+
+        if (errorColores) {
+            console.error(`❌ Error al cargar colores de ${nombreProducto}:`, errorColores);
+            return;
+        }
+
+        // Llenar el select con los colores
+        const selectElement = document.getElementById(selectId);
+        if (selectElement) {
+            selectElement.innerHTML = '<option value="">Selecciona un color</option>';
+            
+            if (colores && colores.length > 0) {
+                colores.forEach(color => {
+                    const option = document.createElement('option');
+                    option.value = color.color;
+                    // NO mostrar stock disponible en el selector
+                    option.textContent = color.color;
+                    selectElement.appendChild(option);
+                });
+                
+                console.log(`✅ ${colores.length} colores cargados para ${nombreProducto}`);
+            } else {
+                console.warn(`⚠️ No hay colores disponibles para ${nombreProducto}`);
+            }
+        }
+    } catch (error) {
+        console.error(`❌ Error al cargar colores de producto:`, error);
+    }
+}
+
 // Cargar detalles del producto seleccionado
 async function cargarDetallesProducto() {
     const select = document.getElementById('producto-select');
@@ -645,18 +740,8 @@ async function cargarDetallesProducto() {
                 labelColor.textContent = 'Color del Cubremantel';
             }
             
-            const colorSelect = document.getElementById('color-select');
-            colorSelect.innerHTML = `
-                <option value="">Selecciona un color</option>
-                <option value="Blanco">Blanco</option>
-                <option value="Rojo">Rojo</option>
-                <option value="Azul">Azul</option>
-                <option value="Negro">Negro</option>
-                <option value="Rosa">Rosa</option>
-                <option value="Dorado">Dorado</option>
-                <option value="Verde">Verde</option>
-                <option value="Morado">Morado</option>
-            `;
+            // Cargar colores de Cubremantel desde la base de datos
+            await cargarColoresParaJuego('Cubremantel', 'color-select');
             
         } else if (nombreJuego.includes('mesa redonda de lujo')) {
             // MESA REDONDA DE LUJO: Color de cubremantel + Color de moño
@@ -668,18 +753,8 @@ async function cargarDetallesProducto() {
                 labelColor.textContent = 'Color del Cubremantel';
             }
             
-            const colorSelect = document.getElementById('color-select');
-            colorSelect.innerHTML = `
-                <option value="">Selecciona un color</option>
-                <option value="Blanco">Blanco</option>
-                <option value="Rojo">Rojo</option>
-                <option value="Azul">Azul</option>
-                <option value="Negro">Negro</option>
-                <option value="Rosa">Rosa</option>
-                <option value="Dorado">Dorado</option>
-                <option value="Verde">Verde</option>
-                <option value="Morado">Morado</option>
-            `;
+            // Cargar colores de Cubremantel desde la base de datos
+            await cargarColoresParaJuego('Cubremantel', 'color-select');
             
             // Agregar selector de color de moño (usar selector de tamaño como segundo selector)
             selectorTamano.classList.remove('selector-oculto');
@@ -690,18 +765,8 @@ async function cargarDetallesProducto() {
                 labelMono.textContent = 'Color del Moño';
             }
             
-            const monoSelect = document.getElementById('tamano-select');
-            monoSelect.innerHTML = `
-                <option value="">Selecciona un color</option>
-                <option value="Blanco">Blanco</option>
-                <option value="Rojo">Rojo</option>
-                <option value="Azul">Azul</option>
-                <option value="Negro">Negro</option>
-                <option value="Rosa">Rosa</option>
-                <option value="Dorado">Dorado</option>
-                <option value="Verde">Verde</option>
-                <option value="Morado">Morado</option>
-            `;
+            // Cargar colores de Moño desde la base de datos
+            await cargarColoresParaJuego('Moño', 'tamano-select');
             
         } else if (nombreJuego.includes('mesa redonda')) {
             // MESA REDONDA NORMAL: Solo color de cubremantel
@@ -713,18 +778,8 @@ async function cargarDetallesProducto() {
                 labelColor.textContent = 'Color del Cubremantel';
             }
             
-            const colorSelect = document.getElementById('color-select');
-            colorSelect.innerHTML = `
-                <option value="">Selecciona un color</option>
-                <option value="Blanco">Blanco</option>
-                <option value="Rojo">Rojo</option>
-                <option value="Azul">Azul</option>
-                <option value="Negro">Negro</option>
-                <option value="Rosa">Rosa</option>
-                <option value="Dorado">Dorado</option>
-                <option value="Verde">Verde</option>
-                <option value="Morado">Morado</option>
-            `;
+            // Cargar colores de Cubremantel desde la base de datos
+            await cargarColoresParaJuego('Cubremantel', 'color-select');
             
         } else {
             // Otros juegos: ocultar selectores
@@ -780,10 +835,13 @@ async function cargarDetallesProducto() {
         selectorColor.classList.add('selector-oculto');
     }
 
-    // No mostrar selector de tamaño si el nombre ya incluye tamaño (6x6, 10x15, etc)
-    const nombreIncluyeTamano = /\d+x\d+/i.test(productoData.nombre);
+    // No mostrar selector de tamaño si:
+    // 1. El nombre ya incluye tamaño (6x6, 10x15, 12 x 3, etc)
+    // 2. Es un producto específico como Maya Sombra que ya tiene su tamaño
+    const nombreIncluyeTamano = /\d+\s*x\s*\d+/i.test(productoData.nombre);
+    const esMayaSombra = productoData.nombre.toLowerCase().includes('maya');
     
-    if (productoData.tiene_tamanos && !nombreIncluyeTamano) {
+    if (productoData.tiene_tamanos && !nombreIncluyeTamano && !esMayaSombra) {
         selectorTamano.classList.remove('selector-oculto');
         selectorTamano.classList.add('selector-visible');
         
@@ -881,17 +939,26 @@ function agregarItemAlPedido() {
     // Agregar color de cubremantel para juegos
     const colorSelect = document.getElementById('color-select');
     if (productoData.es_juego && colorSelect.value) {
-        item.color_cubremantel = colorSelect.options[colorSelect.selectedIndex].text;
+        // Limpiar el texto para quitar "(X disponibles)"
+        let colorTexto = colorSelect.options[colorSelect.selectedIndex].text;
+        colorTexto = colorTexto.replace(/\s*\(\d+\s+disponibles\)\s*/gi, '').trim();
+        item.color_cubremantel = colorTexto;
     } else if (colorSelect.value) {
-        // Color normal para productos no-juego
-        item.color = colorSelect.options[colorSelect.selectedIndex].text;
+        // Color normal para productos no-juego - LIMPIAR también
+        let colorTexto = colorSelect.options[colorSelect.selectedIndex].text;
+        colorTexto = colorTexto.replace(/\s*\(\d+\s+disponibles\)\s*/gi, '').trim();
+        item.color = colorTexto;
     }
 
     // Agregar color de moño para Mesa Redonda de Lujo (viene en tamano-select)
     const nombreJuego = productoData.nombre.toLowerCase();
     
     if (productoData.es_juego && nombreJuego.includes('mesa redonda de lujo') && tamanoSelect.value) {
-        item.color_mono = tamanoSelect.options[tamanoSelect.selectedIndex].text;
+        // Limpiar el texto para quitar "(X disponibles)"
+        let colorMono = tamanoSelect.options[tamanoSelect.selectedIndex].text;
+        colorMono = colorMono.replace(/\s*\(\d+\s+disponibles\)\s*/gi, '').trim();
+        item.color_mono = colorMono;
+        console.log('🎯 Mesa Redonda de Lujo - Cubremantel:', item.color_cubremantel, '- Moño:', item.color_mono);
     } else if (tamanoSelect.value && !productoData.es_juego) {
         // Tamaño normal para productos no-juego
         item.tamano = tamanoSelect.options[tamanoSelect.selectedIndex].text;
@@ -924,7 +991,10 @@ function actualizarListaItems() {
     let html = '';
     itemsPedidoActual.forEach((item, index) => {
         let detalles = `${item.cantidad} x ${formatCurrency(item.precio_unitario)}`;
-        if (item.color) detalles += ` - ${item.color}`;
+        // Solo mostrar color si existe Y no incluye "disponibles"
+        if (item.color && !item.color.includes('disponibles')) {
+            detalles += ` - ${item.color}`;
+        }
         if (item.tamano) detalles += ` - ${item.tamano}`;
 
         html += `
@@ -991,6 +1061,23 @@ async function guardarPedido(event) {
     if (itemsPedidoActual.length === 0) {
         alert('Debes agregar al menos un item al pedido');
         return;
+    }
+
+    // Deshabilitar botón para evitar múltiples clics
+    const btnGuardar = event.target.querySelector('button[type="submit"]');
+    if (btnGuardar) {
+        if (btnGuardar.disabled) {
+            console.log('⚠️ Botón ya deshabilitado, evitando duplicado');
+            return; // Ya se está procesando
+        }
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = `
+            <svg class="spinner" style="width: 18px; height: 18px; animation: spin 1s linear infinite;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke-width="4" stroke="currentColor" fill="none" opacity="0.25"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke="currentColor" fill="none"/>
+            </svg>
+            Guardando...
+        `;
     }
 
     const formData = new FormData(event.target);
@@ -1069,7 +1156,7 @@ async function guardarPedido(event) {
                     for (const componente of componentes) {
                         const productoCom = productosDisponibles.find(p => p.id === componente.producto_id);
                         if (productoCom) {
-                            itemsParaGuardar.push({
+                            const itemComponente = {
                                 pedido_id: pedidoData.id,
                                 producto_id: componente.producto_id,
                                 cantidad: componente.cantidad * item.cantidad,
@@ -1078,7 +1165,27 @@ async function guardarPedido(event) {
                                 es_componente_juego: true,
                                 juego_padre_id: item.producto_id,
                                 es_juego: false
-                            });
+                            };
+                            
+                            // Asignar color según el tipo de componente
+                            const nombreComp = productoCom.nombre.toLowerCase();
+                            console.log(`🔍 Procesando componente: "${productoCom.nombre}" (lowercase: "${nombreComp}")`);
+                            
+                            if (nombreComp.includes('cubremantel') && item.color_cubremantel) {
+                                itemComponente.color = item.color_cubremantel;
+                                console.log(`🔵 Cubremantel ${item.color_cubremantel} asignado (producto_id: ${componente.producto_id})`);
+                            }
+                            
+                            // Buscar "moño" O "mono" (sin acento) - AMBAS VARIANTES
+                            if ((nombreComp.includes('moño') || nombreComp.includes('mono')) && item.color_mono) {
+                                itemComponente.color = item.color_mono;
+                                console.log(`🔴 Moño ${item.color_mono} asignado (producto_id: ${componente.producto_id})`);
+                            } else if (nombreComp.includes('moño') || nombreComp.includes('mono')) {
+                                console.warn(`⚠️ Producto "${productoCom.nombre}" detectado como moño pero NO tiene color_mono`);
+                                console.warn(`⚠️ item.color_mono = ${item.color_mono}`);
+                            }
+                            
+                            itemsParaGuardar.push(itemComponente);
                         }
                     }
                 }
@@ -1118,6 +1225,13 @@ async function guardarPedido(event) {
     } catch (error) {
         console.error('❌ Error al guardar pedido:', error);
         alert(`Error al guardar el pedido: ${error.message}`);
+        
+        // Rehabilitar botón en caso de error
+        const btnGuardar = document.querySelector('#form-nuevo-pedido button[type="submit"]');
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '💾 Guardar Pedido';
+        }
     }
 }
 
@@ -1181,6 +1295,56 @@ async function marcarComoRecogido(pedidoId) {
     }
 }
 
+// Eliminar pedido
+async function eliminarPedido(pedidoId) {
+    // Buscar el pedido para mostrar información
+    const pedido = pedidosData.find(p => p.id === pedidoId);
+    if (!pedido) {
+        alert('No se encontró el pedido');
+        return;
+    }
+
+    // Confirmar eliminación
+    const confirmar = confirm(
+        `¿Estás seguro de que deseas eliminar este pedido?
+
+` +
+        `Cliente: ${pedido.cliente_nombre}
+` +
+        `Fecha: ${formatearFechaSegura(pedido.fecha_evento)}
+` +
+        `Total: ${formatCurrency(pedido.total || 0)}
+
+` +
+        `Esta acción NO se puede deshacer.`
+    );
+
+    if (!confirmar) return;
+
+    try {
+        if (typeof supabase === 'undefined') {
+            throw new Error('Supabase no configurado');
+        }
+
+        console.log('🗑️ Eliminando pedido:', pedidoId);
+
+        // Eliminar pedido (los items se eliminan automáticamente por CASCADE)
+        const { error } = await supabase
+            .from('pedidos')
+            .delete()
+            .eq('id', pedidoId);
+
+        if (error) throw error;
+
+        console.log('✅ Pedido eliminado correctamente');
+        alert('✅ Pedido eliminado correctamente');
+        await cargarPedidos();
+    } catch (error) {
+        console.error('❌ Error al eliminar pedido:', error);
+        alert(`Error al eliminar el pedido: ${error.message}`);
+    }
+}
+
 // Ver detalles del pedido
 function verDetallesPedido(pedidoId) {
     const pedido = pedidosData.find(p => p.id === pedidoId);
@@ -1213,12 +1377,12 @@ function verDetallesPedido(pedidoId) {
                         ${itemsVisibles.map(item => {
                             let nombreProducto = item.productos ? item.productos.nombre : 'Producto';
                             
-                            // Si tiene color de cubremantel, agregarlo
+                            // Si tiene color de cubremantel, agregarlo SIN stock
                             if (item.color_cubremantel) {
                                 nombreProducto += ` (Cubremantel: ${item.color_cubremantel})`;
                             }
                             
-                            // Si tiene color de moño, agregarlo
+                            // Si tiene color de moño, agregarlo SIN stock
                             if (item.color_mono) {
                                 nombreProducto += ` (Moño: ${item.color_mono})`;
                             }
@@ -1368,7 +1532,7 @@ async function descargarNotaPedido() {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('El Rinconcito Costeño', 105, 12, { align: 'center' });
+        doc.text('EL RINCONCITO COSTEÑO', 105, 12, { align: 'center' });
 
         // Subtítulo
         doc.setFontSize(11);

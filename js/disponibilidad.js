@@ -7,10 +7,24 @@ let pedidosDia = [];
 let eventosDia = [];
 
 // Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Página de disponibilidad cargada');
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('📅 Página de disponibilidad cargada');
+    
+    // Esperar a que Supabase esté disponible
+    let intentos = 0;
+    while (typeof supabase === 'undefined' && intentos < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        intentos++;
+    }
+    
+    if (typeof supabase === 'undefined') {
+        console.error('❌ Supabase no se pudo cargar');
+    } else {
+        console.log('✅ Supabase cargado correctamente');
+    }
+    
     generarCalendario();
-    cargarDisponibilidadDia();
+    await cargarDisponibilidadDia();
 });
 
 // Generar calendario
@@ -106,27 +120,32 @@ async function cargarDisponibilidadDia() {
         document.getElementById('titulo-pedidos').textContent = `Pedidos para ${fechaFormateada}`;
 
         if (typeof supabase === 'undefined') {
-            console.warn('Supabase no configurado.');
+            console.error('❌ Supabase no configurado - No se pueden cargar datos');
+            alert('⚠️ Error: No se pudo conectar a la base de datos. Verifica tu configuración de Supabase.');
             pedidosDia = [];
             eventosDia = [];
             mostrarPedidosDia();
             mostrarDisponibilidad([]);
             return;
         }
+        
+        console.log('🔍 Buscando pedidos para fecha:', fechaStr);
 
-        // Cargar pedidos del día
+        // Cargar pedidos del día - CONSULTA SIMPLIFICADA
         const { data: pedidos, error: pedidosError } = await supabase
             .from('pedidos')
-            .select(`
-                *,
-                pedido_items (
-                    *,
-                    productos (nombre)
-                )
-            `)
+            .select('*')
             .eq('fecha_evento', fechaStr);
 
-        if (pedidosError) throw pedidosError;
+        if (pedidosError) {
+            console.error('❌ Error al cargar pedidos:', pedidosError);
+            console.error('❌ Detalles del error:', JSON.stringify(pedidosError, null, 2));
+            console.error('❌ Mensaje:', pedidosError.message);
+            console.error('❌ Código:', pedidosError.code);
+            throw pedidosError;
+        }
+        
+        console.log(`✅ Pedidos cargados: ${pedidos ? pedidos.length : 0}`);
 
         // Cargar eventos del salón del día
         const { data: eventos, error: eventosError } = await supabase
@@ -134,7 +153,12 @@ async function cargarDisponibilidadDia() {
             .select('*')
             .eq('fecha_evento', fechaStr);
 
-        if (eventosError) throw eventosError;
+        if (eventosError) {
+            console.error('❌ Error al cargar eventos:', eventosError);
+            throw eventosError;
+        }
+        
+        console.log(`✅ Eventos cargados: ${eventos ? eventos.length : 0}`);
 
         pedidosDia = pedidos || [];
         eventosDia = eventos || [];
@@ -233,64 +257,196 @@ async function calcularDisponibilidad(fecha) {
         // Obtener todos los productos (excluyendo juegos)
         const { data: productos, error: productosError } = await supabase
             .from('productos')
-            .select('*')
+            .select('id, nombre, stock_total, stock_disponible, tiene_colores')
             .eq('es_juego', false)
             .order('nombre');
 
-        if (productosError) throw productosError;
+        if (productosError) {
+            console.error('❌ Error al cargar productos:', productosError);
+            throw productosError;
+        }
+        
+        if (!productos || productos.length === 0) {
+            console.warn('⚠️ No hay productos en la base de datos');
+            mostrarDisponibilidad([]);
+            return;
+        }
 
         console.log('📅 Calculando disponibilidad para:', fecha);
         console.log(`📦 Productos a calcular: ${productos.length}`);
 
-        // Obtener pedidos del día
+        // Obtener pedidos del día - CONSULTA SIMPLIFICADA
         const { data: pedidosDia, error: pedidosError } = await supabase
             .from('pedidos')
-            .select(`
-                *,
-                pedido_items!pedido_items_pedido_id_fkey (
-                    id,
-                    pedido_id,
-                    producto_id,
-                    cantidad,
-                    precio_unitario,
-                    subtotal,
-                    es_juego,
-                    es_componente_juego,
-                    juego_padre_id,
-                    productos!pedido_items_producto_id_fkey (nombre)
-                )
-            `)
+            .select('*')
             .eq('fecha_evento', fecha);
 
         if (pedidosError) throw pedidosError;
 
+        console.log(`✅ ${pedidosDia ? pedidosDia.length : 0} pedidos encontrados para ${fecha}`);
+
+        // Si no hay pedidos, mostrar todo disponible
+        if (!pedidosDia || pedidosDia.length === 0) {
+            // Cargar stock por colores para productos que lo tienen
+            const disponibilidadPromises = productos.map(async producto => {
+                if (producto.tiene_colores) {
+                    // Sumar stock de todos los colores
+                    const { data: colores } = await supabase
+                        .from('producto_colores')
+                        .select('stock_disponible')
+                        .eq('producto_id', producto.id);
+                    
+                    const stockTotal = colores ? colores.reduce((sum, c) => sum + (c.stock_disponible || 0), 0) : 0;
+                    
+                    return {
+                        nombre: producto.nombre,
+                        disponible: stockTotal,
+                        total: stockTotal,
+                        enUso: 0
+                    };
+                } else {
+                    // Productos sin colores usan stock_total
+                    return {
+                        nombre: producto.nombre,
+                        disponible: producto.stock_total || producto.stock_disponible || 0,
+                        total: producto.stock_total || producto.stock_disponible || 0,
+                        enUso: 0
+                    };
+                }
+            });
+            
+            const disponibilidad = await Promise.all(disponibilidadPromises);
+            console.log('✅ Disponibilidad calculada (sin pedidos):', disponibilidad.length);
+            mostrarDisponibilidad(disponibilidad);
+            return;
+        }
+
+        // Cargar TODOS los items de los pedidos del día (incluyendo componentes de juegos)
+        const pedidoIds = pedidosDia.map(p => p.id);
+        const { data: todosLosItems, error: itemsError } = await supabase
+            .from('pedido_items')
+            .select('producto_id, cantidad, es_componente_juego, color, color_cubremantel, color_mono')
+            .in('pedido_id', pedidoIds);
+
+        if (itemsError) throw itemsError;
+
+        console.log(`✅ ${todosLosItems ? todosLosItems.length : 0} items cargados`);
+        
+        // Log detallado de items
+        if (todosLosItems && todosLosItems.length > 0) {
+            console.log('📦 Items encontrados para esta fecha:');
+            todosLosItems.forEach(item => {
+                const colorInfo = item.color || item.color_cubremantel || item.color_mono || 'N/A';
+                console.log(`  - Producto ID: ${item.producto_id}, Cantidad: ${item.cantidad}, Color: ${colorInfo}, Es componente: ${item.es_componente_juego}`);
+            });
+        }
+
         // Calcular disponibilidad
-        const disponibilidad = productos.map(producto => {
+        const disponibilidadPromises = productos.map(async producto => {
             let cantidadUsada = 0;
 
-            // Contar cuántos de este producto están en uso
-            if (pedidosDia && pedidosDia.length > 0) {
-                pedidosDia.forEach(pedido => {
-                    if (pedido.pedido_items) {
-                        pedido.pedido_items.forEach(item => {
-                            if (item.producto_id === producto.id) {
-                                cantidadUsada += item.cantidad || 0;
-                            }
-                        });
-                    }
+            if (producto.tiene_colores) {
+                // Para productos con colores, calcular el uso POR COLOR
+                const { data: colores } = await supabase
+                    .from('producto_colores')
+                    .select('id, color, stock_disponible')
+                    .eq('producto_id', producto.id);
+                
+                if (!colores || colores.length === 0) {
+                    return {
+                        nombre: producto.nombre,
+                        disponible: 0,
+                        total: 0,
+                        enUso: 0
+                    };
+                }
+                
+                // Calcular uso de cada color
+                const usoPorColor = {};
+                colores.forEach(color => {
+                    usoPorColor[color.color] = 0;
                 });
+                
+                // Sumar items que usan cada color (INCLUYENDO colores que no existen en producto_colores)
+                let usoColoresNoRegistrados = 0;
+                
+                console.log(`🔍 Buscando items para producto "${producto.nombre}" (ID: ${producto.id})`);
+                
+                if (todosLosItems) {
+                    todosLosItems.forEach(item => {
+                        // Para productos con colores, buscar en TRES columnas: color, color_cubremantel, color_mono
+                        let colorItem = null;
+                        
+                        if (item.producto_id === producto.id) {
+                            // Determinar qué columna de color usar
+                            if (item.color) {
+                                colorItem = item.color;
+                            } else if (item.color_cubremantel && producto.nombre.toLowerCase().includes('cubremantel')) {
+                                colorItem = item.color_cubremantel;
+                            } else if (item.color_mono && (producto.nombre.toLowerCase().includes('moño') || producto.nombre.toLowerCase().includes('mono'))) {
+                                colorItem = item.color_mono;
+                            }
+                            
+                            if (colorItem) {
+                                console.log(`  ✅ Match encontrado: Color="${colorItem}", Cantidad=${item.cantidad}`);
+                                if (usoPorColor[colorItem] !== undefined) {
+                                    // Color existe en producto_colores
+                                    usoPorColor[colorItem] += item.cantidad || 0;
+                                } else {
+                                    // Color NO existe en producto_colores
+                                    usoColoresNoRegistrados += item.cantidad || 0;
+                                    console.warn(`⚠️ ${producto.nombre} - Color "${colorItem}" usado pero no existe en inventario (${item.cantidad} piezas)`);
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Sumar stock total y uso total
+                let stockTotal = 0;
+                let usoTotal = 0;
+                
+                colores.forEach(color => {
+                    stockTotal += color.stock_disponible || 0;
+                    usoTotal += usoPorColor[color.color] || 0;
+                });
+                
+                // Añadir uso de colores no registrados
+                usoTotal += usoColoresNoRegistrados;
+                
+                const disponible = Math.max(0, stockTotal - usoTotal);
+                
+                console.log(`📦 ${producto.nombre}: Total=${stockTotal}, En uso=${usoTotal}, Disponible=${disponible}`);
+                
+                return {
+                    nombre: producto.nombre,
+                    disponible: disponible,
+                    total: stockTotal,
+                    enUso: usoTotal
+                };
+            } else {
+                // Productos sin colores: sumar TODAS las cantidades
+                if (todosLosItems) {
+                    todosLosItems.forEach(item => {
+                        if (item.producto_id === producto.id) {
+                            cantidadUsada += item.cantidad || 0;
+                        }
+                    });
+                }
+                
+                const stockTotal = producto.stock_total || producto.stock_disponible || 0;
+                const disponible = Math.max(0, stockTotal - cantidadUsada);
+
+                return {
+                    nombre: producto.nombre,
+                    disponible: disponible,
+                    total: stockTotal,
+                    enUso: cantidadUsada
+                };
             }
-
-            const stockTotal = producto.stock_total || producto.stock_disponible || 0;
-            const disponible = Math.max(0, stockTotal - cantidadUsada);
-
-            return {
-                nombre: producto.nombre,
-                disponible: disponible,
-                total: stockTotal,
-                enUso: cantidadUsada
-            };
         });
+        
+        const disponibilidad = await Promise.all(disponibilidadPromises);
 
         console.log('✅ Disponibilidad calculada:', disponibilidad.length);
         mostrarDisponibilidad(disponibilidad);
@@ -306,7 +462,15 @@ function mostrarDisponibilidad(items) {
     const contenedor = document.getElementById('disponibilidad-inventario');
 
     if (!items || items.length === 0) {
-        contenedor.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No hay datos de inventario</p>';
+        contenedor.innerHTML = `
+            <div style="text-align: center; padding: 3rem; color: var(--text-light);">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="64" height="64" style="margin: 0 auto 1rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <h3 style="margin: 0 0 0.5rem 0;">No hay datos de inventario</h3>
+                <p style="margin: 0;">Agrega productos en la sección de Inventario</p>
+            </div>
+        `;
         return;
     }
 

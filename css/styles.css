@@ -538,6 +538,17 @@ body {
     background-color: var(--hover-color);
 }
 
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
 .btn-outline {
     background-color: transparent;
     color: var(--primary-color);

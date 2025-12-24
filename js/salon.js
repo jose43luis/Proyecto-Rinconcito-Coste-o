@@ -518,9 +518,85 @@ function cerrarModalDetalles() {
     document.getElementById('modal-ver-detalles').classList.remove('active');
 }
 
-// Descargar nota
-function descargarNota(eventoId) {
-    alert('Función de descarga de nota en desarrollo.\n\nSe generará un PDF con los detalles del evento.');
+// Descargar nota - FUNCIÓN ACTUALIZADA CON PDF
+async function descargarNota(eventoId) {
+    try {
+        const evento = eventosData.find(e => e.id === eventoId);
+        if (!evento) { alert('No se encontró el evento'); return; }
+        if (typeof window.jspdf === 'undefined') await cargarJsPDF();
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const azulOscuro = [25, 48, 91], grisOscuro = [60, 60, 60], azulClaro = [52, 152, 219];
+        doc.setFillColor(...azulOscuro); doc.rect(0, 0, 210, 45, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+        doc.text('EL RINCONCITO COSTEÑO', 105, 12, { align: 'center' });
+        doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+        doc.text('Renta de Salón para Eventos', 105, 19, { align: 'center' });
+        doc.setFontSize(9); doc.text('Tel: 954-124-2921 | 954-125-1757', 105, 26, { align: 'center' });
+        doc.text('Bajos de Chila, Colonia Las Flores', 105, 32, { align: 'center' });
+        doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+        doc.text('CONTRATO DE RENTA DE SALÓN', 105, 40, { align: 'center' });
+        let yPos = 55;
+        doc.setTextColor(...grisOscuro); doc.setFillColor(240, 240, 240);
+        doc.roundedRect(15, yPos - 5, 85, 25, 2, 2, 'F');
+        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+        doc.text('INFORMACIÓN DEL CLIENTE', 20, yPos);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+        doc.text(`Nombre: ${evento.cliente_nombre}`, 20, yPos + 7);
+        doc.text(`Teléfono: ${evento.cliente_telefono || 'N/A'}`, 20, yPos + 14);
+        doc.setFillColor(...azulClaro); doc.roundedRect(110, yPos - 5, 85, 10, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+        const fechaEvento = new Date(evento.fecha_evento);
+        const eventoNumero = `${fechaEvento.getDate()}-${fechaEvento.getMonth() + 1}-${fechaEvento.getFullYear()}`;
+        doc.text(`Evento #${eventoNumero}`, 152.5, yPos, { align: 'center' });
+        yPos += 35; doc.setTextColor(...grisOscuro); doc.setFillColor(240, 240, 240);
+        doc.roundedRect(15, yPos - 5, 180, 35, 2, 2, 'F');
+        doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+        doc.text('INFORMACIÓN DEL EVENTO', 20, yPos);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+        doc.text(`Fecha: ${formatearFechaSegura(evento.fecha_evento)}`, 20, yPos + 7);
+        doc.text(`Horario: ${formatearHoraSegura(evento.hora_inicio)}`, 20, yPos + 14);
+        doc.text(`Tipo de Evento: ${evento.tipo_evento || 'No especificado'}`, 20, yPos + 21);
+        doc.text(`Número de Invitados: ${evento.num_invitados || 'No especificado'}`, 20, yPos + 28);
+        yPos += 50; doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+        doc.text('CONDICIONES Y SERVICIOS INCLUIDOS', 20, yPos); yPos += 5;
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+        if (evento.condiciones) { const lineas = doc.splitTextToSize(evento.condiciones, 170); lineas.forEach((linea, i) => doc.text(linea, 20, yPos + 5 + (i * 5))); yPos += 5 + (lineas.length * 5); }
+        if (evento.notas) { yPos += 5; doc.setFont('helvetica', 'bold'); doc.text('NOTAS ADICIONALES:', 20, yPos); doc.setFont('helvetica', 'normal'); const lineas = doc.splitTextToSize(evento.notas, 170); lineas.forEach((linea, i) => doc.text(linea, 20, yPos + 5 + (i * 5))); yPos += 5 + (lineas.length * 5); }
+        yPos += 10; doc.setFillColor(...azulOscuro); doc.rect(130, yPos, 65, 8, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+        doc.text('PRECIO TOTAL:', 140, yPos + 5);
+        doc.text(formatCurrency(evento.precio || 5000), 185, yPos + 5, { align: 'right' });
+        yPos += 10; doc.setTextColor(...grisOscuro); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+        if (evento.pagado) { doc.setFillColor(16, 185, 129); doc.roundedRect(130, yPos, 65, 8, 2, 2, 'F'); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.text('PAGADO COMPLETO', 162.5, yPos + 5, { align: 'center' }); }
+        else if (evento.anticipo > 0) { doc.setFont('helvetica', 'bold'); doc.text(`Anticipo: ${formatCurrency(evento.anticipo)}`, 140, yPos + 3); doc.text(`Saldo: ${formatCurrency((evento.precio || 5000) - evento.anticipo)}`, 140, yPos + 9); yPos += 15; doc.setFillColor(245, 158, 11); doc.roundedRect(130, yPos, 65, 8, 2, 2, 'F'); doc.setTextColor(255, 255, 255); doc.text('ANTICIPO RECIBIDO', 162.5, yPos + 5, { align: 'center' }); }
+        else { yPos += 2; doc.setFillColor(239, 68, 68); doc.roundedRect(130, yPos, 65, 8, 2, 2, 'F'); doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.text('PAGO PENDIENTE', 162.5, yPos + 5, { align: 'center' }); }
+        yPos = 220; doc.setTextColor(...grisOscuro); doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+        doc.text('TÉRMINOS Y CONDICIONES DEL CONTRATO:', 20, yPos); doc.setFont('helvetica', 'normal');
+        doc.text('• El arrendatario se compromete a dejar el salón en las mismas condiciones en que lo recibió.', 20, yPos + 5);
+        doc.text('• Cualquier daño a las instalaciones, mobiliario o equipo será cobrado al cliente.', 20, yPos + 10);
+        doc.text('• El horario de entrada y salida debe respetarse según lo acordado.', 20, yPos + 15);
+        doc.text('• En caso de cancelación, el anticipo no es reembolsable.', 20, yPos + 30);
+        yPos += 45; doc.line(20, yPos, 80, yPos); doc.setFontSize(8);
+        doc.text('Firma del Cliente', 50, yPos + 5, { align: 'center' });
+        doc.text(evento.cliente_nombre, 50, yPos + 10, { align: 'center' });
+        doc.line(130, yPos, 190, yPos); doc.text('El Rinconcito Costeño', 160, yPos + 5, { align: 'center' });
+        doc.text('Arrendador', 160, yPos + 10, { align: 'center' });
+        doc.setFontSize(7); doc.setTextColor(120, 120, 120);
+        doc.text(`Contrato emitido el ${new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}`, 105, 285, { align: 'center' });
+        doc.save(`Contrato_Salon_${eventoNumero}_${evento.cliente_nombre.replace(/\s+/g, '-')}.pdf`);
+    } catch (error) { alert(`Error: ${error.message}`); }
+}
+
+function cargarJsPDF() {
+    return new Promise((resolve, reject) => {
+        if (typeof window.jspdf !== 'undefined') { resolve(); return; }
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('No se pudo cargar jsPDF'));
+        document.head.appendChild(script);
+    });
 }
 
 // Toggle anticipo
