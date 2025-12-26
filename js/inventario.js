@@ -404,15 +404,58 @@ function abrirModalColores(productoId) {
                 <span class="color-nombre">${color.color}</span>
             </div>
             <div class="color-cantidad">${color.stock_disponible || 0}</div>
-            <button class="btn-editar-color" onclick="editarColor('${color.id}', event)">
-                Editar
-            </button>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn-editar-color" onclick="editarColor('${color.id}', event)">
+                    Editar
+                </button>
+                <button class="btn-eliminar-color" onclick="eliminarColor('${color.id}', '${color.color}', event)" title="Eliminar color">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     `).join('');
 
     document.getElementById('colores-grid').innerHTML = coloresHTML;
     document.getElementById('form-nuevo-color').classList.add('oculto');
     document.getElementById('modal-editar-colores').classList.add('active');
+}
+
+// Eliminar color
+async function eliminarColor(colorId, nombreColor, event) {
+    if (event) event.stopPropagation();
+    
+    if (!confirm(`¿Estás seguro de que deseas eliminar el color "${nombreColor}"?\n\nEsta acción NO se puede deshacer.`)) {
+        return;
+    }
+
+    try {
+        if (typeof supabase !== 'undefined') {
+            const { error } = await supabase
+                .from('producto_colores')
+                .delete()
+                .eq('id', colorId);
+
+            if (error) throw error;
+            
+            alert('✅ Color eliminado correctamente');
+        } else {
+            // Modo demo
+            const index = productosColores.findIndex(c => c.id === colorId);
+            if (index > -1) {
+                productosColores.splice(index, 1);
+            }
+            alert('✅ Color eliminado (modo demo)');
+        }
+
+        await cargarInventario();
+        // Reabrir modal de colores
+        setTimeout(() => abrirModalColores(productoActual.id), 100);
+    } catch (error) {
+        console.error('❌ Error al eliminar color:', error);
+        alert('Error al eliminar el color: ' + error.message);
+    }
 }
 
 // Editar color específico

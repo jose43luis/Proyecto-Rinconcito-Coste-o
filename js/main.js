@@ -165,7 +165,7 @@ async function loadDashboardStats() {
     }
 }
 
-// Cargar actividad reciente desde Supabase SOLAMENTE
+// Cargar actividad reciente desde Supabase SOLAMENTE - QUERY SIMPLIFICADO
 async function loadRecentActivity() {
     try {
         const contenedor = document.getElementById('activity-list');
@@ -185,16 +185,10 @@ async function loadRecentActivity() {
             return;
         }
 
-        // Obtener últimos 3 pedidos
+        // Obtener últimos 3 pedidos - SIN JOIN COMPLEJO
         const { data: pedidos, error: pedidosError } = await supabase
             .from('pedidos')
-            .select(`
-                *,
-                pedido_items (
-                    cantidad,
-                    productos (nombre)
-                )
-            `)
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(3);
 
@@ -213,10 +207,8 @@ async function loadRecentActivity() {
         // Agregar pedidos
         if (pedidos && pedidos.length > 0) {
             pedidos.forEach(pedido => {
-                const descripcion = pedido.pedido_items && pedido.pedido_items.length > 0 ?
-                    pedido.pedido_items.map(item => 
-                        `${item.cantidad} ${item.productos.nombre}`
-                    ).join(', ') : 'Mobiliario';
+                // Descripción simplificada sin join
+                const descripcion = 'Pedido de mobiliario';
 
                 actividades.push({
                     tipo: 'pedido',
