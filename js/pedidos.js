@@ -480,11 +480,15 @@ function crearCardPedido(pedido) {
             <div class="pedido-actions">
                 ${botones}
                 <button class="btn btn-secondary btn-sm" onclick="verDetallesPedido('${pedido.id}')">Ver Detalles</button>
-                <button class="btn btn-danger btn-sm" onclick="eliminarPedido('${pedido.id}')" style="margin-left: auto;">
+                <button onclick="editarPedido('${pedido.id}')" title="Editar pedido" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: auto; margin-right: 0.5rem;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                </button>
+                <button onclick="eliminarPedido('${pedido.id}')" title="Eliminar pedido" style="width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
-                    
                 </button>
             </div>
         </div>
@@ -1292,6 +1296,167 @@ async function marcarComoRecogido(pedidoId) {
     } catch (error) {
         console.error('❌ Error al actualizar pedido:', error);
         alert(`Error al actualizar el pedido: ${error.message}`);
+    }
+}
+
+// Editar pedido
+function editarPedido(pedidoId) {
+    const pedido = pedidosData.find(p => p.id === pedidoId);
+    if (!pedido) {
+        alert('No se encontró el pedido');
+        return;
+    }
+
+    console.log('✏️ Editando pedido:', pedidoId);
+
+    // Cambiar a vista de formulario
+    document.getElementById('vista-lista').classList.remove('vista-activa');
+    document.getElementById('vista-lista').classList.add('vista-oculta');
+    document.getElementById('vista-formulario').classList.remove('vista-oculta');
+    document.getElementById('vista-formulario').classList.add('vista-activa');
+
+    // Guardar ID del pedido actual
+    pedidoActualId = pedidoId;
+
+    // Llenar formulario
+    document.getElementById('nombre-cliente').value = pedido.cliente_nombre || '';
+    document.getElementById('telefono-cliente').value = pedido.cliente_telefono || '';
+    document.getElementById('fecha-evento').value = pedido.fecha_evento || '';
+    document.getElementById('hora-evento').value = pedido.hora_evento || '';
+    
+    const lugarSelect = document.getElementById('lugar-predefinido');
+    const lugarEncontrado = lugaresPopulares.find(l => l.nombre === pedido.lugar);
+    if (lugarEncontrado) {
+        lugarSelect.value = lugarEncontrado.id;
+    } else {
+        lugarSelect.value = '';
+    }
+    
+    document.getElementById('direccion-completa').value = pedido.lugar_descripcion || '';
+    document.getElementById('comentarios').value = pedido.comentarios || '';
+    document.getElementById('esta-pagado').checked = pedido.pagado || false;
+    document.getElementById('anticipo').value = pedido.anticipo || '';
+    toggleAnticipo();
+
+    // Cargar items
+    itemsPedidoActual = [];
+    if (pedido.pedido_items && pedido.pedido_items.length > 0) {
+        const itemsVisibles = pedido.pedido_items.filter(item => !item.es_componente_juego);
+        itemsVisibles.forEach(item => {
+            const producto = productosDisponibles.find(p => p.id === item.producto_id);
+            if (producto) {
+                const itemPedido = {
+                    producto_id: item.producto_id,
+                    nombre: producto.nombre,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.precio_unitario,
+                    subtotal: item.subtotal,
+                    es_juego: item.es_juego || false
+                };
+                if (item.color_cubremantel) itemPedido.color_cubremantel = item.color_cubremantel;
+                if (item.color_mono) itemPedido.color_mono = item.color_mono;
+                if (item.color) itemPedido.color = item.color;
+                if (item.tamano) itemPedido.tamano = item.tamano;
+                itemsPedidoActual.push(itemPedido);
+            }
+        });
+    }
+
+    actualizarListaItems();
+    actualizarResumen();
+
+    const titulo = document.querySelector('#vista-formulario h1');
+    if (titulo) titulo.textContent = 'Editar Pedido';
+
+    const btnGuardar = document.querySelector('#form-nuevo-pedido button[type="submit"]');
+    if (btnGuardar) {
+        btnGuardar.innerHTML = '✏️ Actualizar Pedido';
+        btnGuardar.onclick = function(e) { e.preventDefault(); actualizarPedido(e); };
+    }
+}
+
+// Actualizar pedido
+async function actualizarPedido(event) {
+    event.preventDefault();
+    if (!pedidoActualId) { alert('Error: No hay pedido para actualizar'); return; }
+    if (itemsPedidoActual.length === 0) { alert('Debes agregar al menos un item'); return; }
+
+    const btnGuardar = event.target.querySelector('button[type="submit"]') || event.currentTarget;
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<svg class="spinner" style="width: 18px; height: 18px; animation: spin 1s linear infinite;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="4" stroke="currentColor" fill="none" opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke="currentColor" fill="none"/></svg>Actualizando...';
+    }
+
+    const formData = new FormData(document.getElementById('form-nuevo-pedido'));
+    const total = itemsPedidoActual.reduce((sum, item) => sum + item.subtotal, 0);
+    const lugarSelect = document.getElementById('lugar-predefinido');
+    const lugarNombre = lugarSelect.value ? lugarSelect.selectedOptions[0].text : 'Otro lugar';
+
+    const pedidoActualizado = {
+        cliente_nombre: formData.get('nombre_cliente'),
+        cliente_telefono: formData.get('telefono_cliente') || null,
+        fecha_evento: formData.get('fecha_evento'),
+        hora_evento: formData.get('hora_evento'),
+        lugar: lugarNombre,
+        lugar_descripcion: formData.get('direccion_completa') || null,
+        comentarios: formData.get('comentarios') || null,
+        total: total,
+        pagado: formData.get('esta_pagado') === 'on',
+        anticipo: parseFloat(formData.get('anticipo')) || 0
+    };
+
+    try {
+        if (typeof supabase === 'undefined') throw new Error('Supabase no configurado');
+
+        const { error: pedidoError } = await supabase.from('pedidos').update(pedidoActualizado).eq('id', pedidoActualId);
+        if (pedidoError) throw pedidoError;
+
+        const { error: deleteError } = await supabase.from('pedido_items').delete().eq('pedido_id', pedidoActualId);
+        if (deleteError) throw deleteError;
+
+        const itemsParaGuardar = [];
+        for (const item of itemsPedidoActual) {
+            const producto = productosDisponibles.find(p => p.id === item.producto_id);
+            if (producto && producto.es_juego) {
+                itemsParaGuardar.push({ pedido_id: pedidoActualId, producto_id: item.producto_id, cantidad: item.cantidad, precio_unitario: item.precio_unitario, subtotal: item.subtotal, es_juego: true, color_cubremantel: item.color_cubremantel || null, color_mono: item.color_mono || null, es_componente_juego: false });
+                const { data: componentes } = await supabase.from('juego_componentes').select('producto_id, cantidad').eq('juego_id', item.producto_id);
+                if (componentes && componentes.length > 0) {
+                    for (const componente of componentes) {
+                        const productoCom = productosDisponibles.find(p => p.id === componente.producto_id);
+                        if (productoCom) {
+                            const itemComponente = { pedido_id: pedidoActualId, producto_id: componente.producto_id, cantidad: componente.cantidad * item.cantidad, precio_unitario: 0, subtotal: 0, es_componente_juego: true, juego_padre_id: item.producto_id, es_juego: false };
+                            const nombreComp = productoCom.nombre.toLowerCase();
+                            if (nombreComp.includes('cubremantel') && item.color_cubremantel) itemComponente.color = item.color_cubremantel;
+                            if ((nombreComp.includes('moño') || nombreComp.includes('mono')) && item.color_mono) itemComponente.color = item.color_mono;
+                            itemsParaGuardar.push(itemComponente);
+                        }
+                    }
+                }
+            } else {
+                itemsParaGuardar.push({ pedido_id: pedidoActualId, producto_id: item.producto_id, cantidad: item.cantidad, precio_unitario: item.precio_unitario, subtotal: item.subtotal, color: item.color || null, tamano: item.tamano || null, es_juego: false, es_componente_juego: false });
+            }
+        }
+
+        const { error: itemsError } = await supabase.from('pedido_items').insert(itemsParaGuardar);
+        if (itemsError) throw itemsError;
+
+        pedidoActualId = null;
+        itemsPedidoActual = [];
+
+        const titulo = document.querySelector('#vista-formulario h1');
+        if (titulo) titulo.textContent = 'Nuevo Pedido';
+
+        const btn = document.querySelector('#form-nuevo-pedido button[type="submit"]');
+        if (btn) { btn.innerHTML = '💾 Guardar Pedido'; btn.onclick = null; }
+
+        alert('✅ Pedido actualizado exitosamente');
+        await cargarPedidos();
+        volverALista();
+    } catch (error) {
+        console.error('❌ Error:', error);
+        alert(`Error: ${error.message}`);
+        const btn = document.querySelector('#form-nuevo-pedido button[type="submit"]');
+        if (btn) { btn.disabled = false; btn.innerHTML = '✏️ Actualizar Pedido'; }
     }
 }
 
